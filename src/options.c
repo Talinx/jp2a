@@ -61,6 +61,7 @@ char* html_title = NULL;
 int html_rawoutput = 0;
 int debug = 0;
 int clearscr = 0;
+float edge_threshold = 100.;
 int term_width = 0;
 int term_height = 0;
 int usecolors = 0;
@@ -130,6 +131,7 @@ void help() {
 "                        values are: 4 (for ANSI), 8 (for 256 color palette)\n"
 "                        and 24 (for truecolor or 24-bit color).\n"
 "  -d, --debug       Print additional debug information.\n"
+"      --edge-threshold=N.N   Image gradient above which to shade lines and edges with directional glyphs (such as -/|\\).\n"
 "      --fill        When used with --color and/or --htmlls or --xhtml, color\n"
 "                    each character's background.\n"
 "  -x, --flipx       Flip image in X direction.\n"
@@ -260,6 +262,8 @@ void parse_options(int argc, char** argv) {
 		IF_VAR ("--blue=%f", &blueweight)        { continue; }
 		IF_VAR ("--html-fontsize=%d",
 			&html_fontsize)             { continue; }
+		IF_VAR ("--edge-threshold=%f",
+			&edge_threshold)            { continue; }
 
 		IF_VARS("--size=%dx%d",&width, &height) {
 			auto_width = auto_height = 0; continue;
