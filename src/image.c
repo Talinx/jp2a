@@ -79,33 +79,29 @@ void print_image(Image *image, FILE *f) {
 	else if ( xhtml && !html_rawoutput ) print_xhtml_image_end(f);
 }
 
+int get_pixel_index(const Image* const image, const int x, const int y) {
+	const float fx = flipx ? image->width - x - 1 : x;
+	const float fy = flipy ? image->height - y - 1 : y;
+	const int cx = fx < 0 ? 0 : fx > image->width ? image->width : fx;
+	const int cy = fy < 0 ? 0 : fy > image->height ? image->height : fy;
+	return cx + cy * image->width;
+}
+
 void print_image_colors(const Image* const image, const int chars, FILE* f) {
 
-	int x, y;
-	int xstart, xend, xincr;
-
-	for ( y=0;  y < image->height; ++y ) {
+	for ( int y=0;  y < image->height; ++y ) {
 
 		if ( use_border ) fprintf(f, "|");
 
-		xstart = 0;
-		xend   = image->width;
-		xincr  = 1;
+		for ( int x=0; x < image->width; x += 1 ) {
 
-		if ( flipx ) {
-			xstart = image->width - 1;
-			xend = -1;
-			xincr = -1;
-		}
-
-		for ( x=xstart; x != xend; x += xincr ) {
-
-			float Y = image->pixel[x + (flipy? image->height - y - 1 : y ) * image->width];
+			const int pixel_index = get_pixel_index(image, x, y);
+			float Y = image->pixel[pixel_index];
 			float Y_inv = 1.0f - Y;
-			float R = image->red  [x + (flipy? image->height - y - 1 : y ) * image->width];
-			float G = image->green[x + (flipy? image->height - y - 1 : y ) * image->width];
-			float B = image->blue [x + (flipy? image->height - y - 1 : y ) * image->width];
-			float A = image->alpha [x + (flipy? image->height - y - 1 : y ) * image->width];
+			float R = image->red  [pixel_index];
+			float G = image->green[pixel_index];
+			float B = image->blue [pixel_index];
+			float A = image->alpha[pixel_index];
 			R *= A;
 			G *= A;
 			B *= A;
@@ -268,8 +264,6 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 }
 
 void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
-	int x, y;
-
 #if ASCII
 	#ifdef WIN32
 	char *line = (char*) malloc(image->width + 1);
@@ -287,49 +281,40 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 	line[image->width * MB_LEN_MAX] = 0;
 #endif
 
-	for ( y=0; y < image->height; ++y ) {
+	for ( int y=0; y < image->height; ++y ) {
 
 #if ! ASCII
-		curLinePos = flipx? image->width * MB_LEN_MAX : 0;
+		curLinePos = 0;
 #endif
-		for ( x=0; x < image->width; ++x ) {
+		for ( int x=0; x < image->width; ++x ) {
 
-			const float lum = image->pixel[x + (flipy? image->height - y - 1 : y) * image->width];
-			const float opacity = image->alpha[x + (flipy? image->height - y - 1 : y) * image->width];
+			const int pixel_index = get_pixel_index(image, x, y);
+			const float lum = image->pixel[pixel_index];
+			const float opacity = image->alpha[pixel_index];
 			const int pos = ROUND((float)chars * lum);
 
 			int i = invert? pos : chars - pos;
 			i = ROUND((float)i * opacity);
 #if ASCII
-			line[flipx? image->width - x - 1 : x] = ascii_palette[i];
+			line[x] = ascii_palette[i];
 #else
 			int paletteI = ascii_palette_indizes[i];
-			if ( flipx )
-				curLinePos -= ascii_palette_lengths[i];
 			line[curLinePos++] = ascii_palette[paletteI];
 			// Add as many bytes as the char's length
 			for ( size_t j = 1; j < ascii_palette_lengths[i]; j++ ) {
 				line[curLinePos++] = ascii_palette[++paletteI];
 			}
-			if ( flipx )
-				curLinePos -= ascii_palette_lengths[i];
 #endif
 		}
-#if ASCII
+#if ! ASCII
+		line[curLinePos] = '\0';
+#endif
 		fprintf(f, !use_border? "%s\n" : "|%s|\n", line);
-#else
-		if ( !flipx ) {
-			line[curLinePos] = '\0';
-			fprintf(f, !use_border? "%s\n" : "|%s|\n", line);
-		} else {
-			fprintf(f, !use_border? "%s\n" : "|%s|\n", line + curLinePos);
-		}
-#endif
 	}
 
-	#ifdef WIN32
+#ifdef WIN32
 	free(line);
-	#endif
+#endif
 }
 
 void clear(Image* i) {
