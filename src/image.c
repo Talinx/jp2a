@@ -295,16 +295,18 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 
 			int i = invert? pos : chars - pos;
 			i = ROUND((float)i * opacity);
+
 #if ASCII
-			line[x] = ascii_palette[i];
+			char* char_dest = &line[x];
+			char* char_start = &ascii_palette[i];
+			size_t char_len = 1;
 #else
-			int paletteI = ascii_palette_indizes[i];
-			line[curLinePos++] = ascii_palette[paletteI];
-			// Add as many bytes as the char's length
-			for ( size_t j = 1; j < ascii_palette_lengths[i]; j++ ) {
-				line[curLinePos++] = ascii_palette[++paletteI];
-			}
+			char* char_dest = &line[curLinePos];
+			char* char_start = &ascii_palette[ascii_palette_indizes[i]];
+			size_t char_len = ascii_palette_lengths[i];
+			curLinePos += char_len;
 #endif
+			memcpy(char_dest, char_start, char_len);
 		}
 #if ! ASCII
 		line[curLinePos] = '\0';
