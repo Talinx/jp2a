@@ -315,15 +315,12 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 	#else
 	char line[image->width * MB_LEN_MAX + 1];
 	#endif
-	int curLinePos;
 	line[image->width * MB_LEN_MAX] = 0;
 #endif
 
 	for ( int y=0; y < image->height; ++y ) {
 
-#if ! ASCII
-		curLinePos = 0;
-#endif
+		int curLinePos = 0;
 		for ( int x=0; x < image->width; ++x ) {
 
 			const int pixel_index = get_pixel_index(image, x, y);
@@ -334,21 +331,18 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 			int i = invert? pos : chars - pos;
 			i = ROUND((float)i * opacity);
 
+			char* char_dest = &line[curLinePos];
 #if ASCII
-			char* char_dest = &line[x];
 			char* char_start = &ascii_palette[i];
 			size_t char_len = 1;
 #else
-			char* char_dest = &line[curLinePos];
 			char* char_start = &ascii_palette[ascii_palette_indizes[i]];
 			size_t char_len = ascii_palette_lengths[i];
-			curLinePos += char_len;
 #endif
 			memcpy(char_dest, char_start, char_len);
+			curLinePos += char_len;
+			line[curLinePos] = '\0';
 		}
-#if ! ASCII
-		line[curLinePos] = '\0';
-#endif
 		fprintf(f, !use_border? "%s\n" : "|%s|\n", line);
 	}
 
