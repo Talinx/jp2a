@@ -26,6 +26,7 @@
 #include "jp2a.h"
 #include "options.h"
 #include "html.h"
+#include <math.h>
 
 #define ROUND(x) (int) ( 0.5f + x )
 
@@ -85,6 +86,34 @@ int get_pixel_index(const Image* const image, const int x, const int y) {
 	const int cx = fx < 0 ? 0 : fx > image->width ? image->width : fx;
 	const int cy = fy < 0 ? 0 : fy > image->height ? image->height : fy;
 	return cx + cy * image->width;
+}
+
+typedef struct {
+	float x;
+	float y;
+} vec2;
+
+vec2 get_image_gradient(const Image* const image, const int x, const int y) {
+	const float kernel_x[9] = {
+		-4./4.,    0.,
+		 4./4., 0./4.
+	};
+	const float kernel_y[9] = {
+		-4./4., 4./4.,
+		    0., 0./4.
+	};
+	const float patch[9] = {
+		image->pixel[get_pixel_index(image, x  , y  )],
+		image->pixel[get_pixel_index(image, x+1, y  )],
+		image->pixel[get_pixel_index(image, x  , y+1)],
+		image->pixel[get_pixel_index(image, x+1, y+1)],
+	};
+	vec2 grad = {0., 0.};
+	for( int i = 0; i < 4; ++i ) {
+		grad.x += kernel_x[i] * patch[i];
+		grad.y += kernel_y[i] * patch[i];
+	}
+	return grad;
 }
 
 void print_image_colors(const Image* const image, const int chars, FILE* f) {
