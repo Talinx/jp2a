@@ -116,6 +116,14 @@ vec2 get_image_gradient(const Image* const image, const int x, const int y) {
 	return grad;
 }
 
+float magnitude( const vec2 v ) {
+	return sqrtf( v.x*v.x + v.y*v.y );
+}
+
+float direction( const vec2 v ) {
+	return atan(v.y / v.x);
+}
+
 void print_image_colors(const Image* const image, const int chars, FILE* f) {
 
 	for ( int y=0;  y < image->height; ++y ) {
