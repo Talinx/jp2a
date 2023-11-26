@@ -108,18 +108,19 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 
 			const int pos = ROUND((float)chars * (!invert? Y_inv : Y));
 			int i = ROUND((float)pos * A);
-#if ASCII
-			char ch = ascii_palette[i];
-#define	PRINTF_FORMAT_TYPE "%c"
-#else
+
 			char ch[MB_LEN_MAX + 1];
-			ch[0] = ascii_palette[ascii_palette_indizes[i]];
-			for ( size_t j = 1; j < ascii_palette_lengths[i]; j++ ) {
-				ch[j] = ascii_palette[ascii_palette_indizes[i] + j];
-			}
-			ch[ascii_palette_lengths[i]] = '\0';
 #define PRINTF_FORMAT_TYPE "%s"
+
+#if ASCII
+			char* char_start = &ascii_palette[i];
+			size_t char_len = 1;
+#else
+			char* char_start = &ascii_palette[ascii_palette_indizes[i]];
+			size_t char_len = ascii_palette_lengths[i];
 #endif
+			memcpy(ch, char_start, char_len);
+			ch[char_len] = '\0';
 
 			const float min = 1.0f / 255.0f;
 
