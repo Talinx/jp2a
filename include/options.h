@@ -40,6 +40,7 @@ extern int html_bold; //!< use bold characters in HTML output
 extern int debug; //!< print debug information
 extern int clearscr; //!< clear the screen before printing an image
 extern float edge_threshold; //!< image gradient above which edges should be drawn with /-\| characters
+extern int edges_only; //!< only draw edges - make sure you use it with the edge-threshold option so edges are drawn
 extern int ascii_palette_length; //!< number of charactrs in the palette
 extern char ascii_palette[]; //!< the palette
 #if ! ASCII

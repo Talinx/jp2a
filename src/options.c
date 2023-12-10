@@ -62,6 +62,7 @@ int html_rawoutput = 0;
 int debug = 0;
 int clearscr = 0;
 float edge_threshold = 100.;
+int edges_only = 0;
 int term_width = 0;
 int term_height = 0;
 int usecolors = 0;
@@ -132,6 +133,7 @@ void help() {
 "                        and 24 (for truecolor or 24-bit color).\n"
 "  -d, --debug       Print additional debug information.\n"
 "      --edge-threshold=N.N   Image gradient above which to shade lines and edges with directional glyphs (such as -/|\\).\n"
+"      --edges-only  Only draw edges - make sure you use it with the edge-threshold option so edges are drawn.\n"
 "      --fill        When used with --color and/or --htmlls or --xhtml, color\n"
 "                    each character's background.\n"
 "  -x, --flipx       Flip image in X direction.\n"
@@ -255,6 +257,7 @@ void parse_options(int argc, char** argv) {
 		IF_OPTS("-x", "--flipx")                 { flipx = 1; continue; }
 		IF_OPTS("-y", "--flipy")                 { flipy = 1; continue; }
 		IF_OPTS("-V", "--version")               { print_version(); exit(0); }
+		IF_OPT("--edges-only")                   { edges_only = 1; continue; }
 		IF_VAR ("--width=%d", &width)            { auto_height += 1; continue; }
 		IF_VAR ("--height=%d", &height)          { auto_width += 1; continue; }
 		IF_VAR ("--red=%f", &redweight)          { continue; }
