@@ -136,7 +136,6 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 
 			const int pixel_index = get_pixel_index(image, x, y);
 			float Y = image->pixel[pixel_index];
-			float Y_inv = 1.0f - Y;
 			float R = image->red  [pixel_index];
 			float G = image->green[pixel_index];
 			float B = image->blue [pixel_index];
@@ -144,9 +143,15 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 			R *= A;
 			G *= A;
 			B *= A;
+			const vec2 gradient = get_image_gradient(image, x, y);
+			int pos = ROUND((float)chars * Y);
 
-			const int pos = ROUND((float)chars * (!invert? Y_inv : Y));
-			int i = ROUND((float)pos * A);
+			if( edges_only && magnitude(gradient) < edge_threshold ) {
+				pos = 0;
+			}
+
+			int i = invert? pos : chars - pos;
+			i = ROUND((float)i * A);
 
 			char ch[MB_LEN_MAX + 1];
 #define PRINTF_FORMAT_TYPE "%s"
@@ -158,7 +163,6 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 			char* char_start = &ascii_palette[ascii_palette_indizes[i]];
 			size_t char_len = ascii_palette_lengths[i];
 #endif
-			const vec2 gradient = get_image_gradient(image, x, y);
 			if( magnitude(gradient) > edge_threshold ) {
 				float direction_scaled = direction(gradient) / M_PI * 4. + 5.5;
 				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled, 4.) ];
@@ -335,7 +339,12 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 			const int pixel_index = get_pixel_index(image, x, y);
 			const float lum = image->pixel[pixel_index];
 			const float opacity = image->alpha[pixel_index];
-			const int pos = ROUND((float)chars * lum);
+			const vec2 gradient = get_image_gradient(image, x, y);
+			int pos = ROUND((float)chars * lum);
+
+			if( edges_only && magnitude(gradient) < edge_threshold ) {
+				pos = 0;
+			}
 
 			int i = invert? pos : chars - pos;
 			i = ROUND((float)i * opacity);
@@ -348,7 +357,6 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 			char* char_start = &ascii_palette[ascii_palette_indizes[i]];
 			size_t char_len = ascii_palette_lengths[i];
 #endif
-			const vec2 gradient = get_image_gradient(image, x, y);
 			if( magnitude(gradient) > edge_threshold ) {
 				float direction_scaled = direction(gradient) / M_PI * 4. + 5.5;
 				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled, 4.) ];
