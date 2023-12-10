@@ -159,7 +159,7 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 			size_t char_len = ascii_palette_lengths[i];
 #endif
 			const vec2 gradient = get_image_gradient(image, x, y);
-			if( i > 1 && magnitude(gradient) > edge_threshold ) {
+			if( magnitude(gradient) > edge_threshold ) {
 				float direction_scaled = direction(gradient) / M_PI * 4. + 5.5;
 				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled, 4.) ];
 				char_len = 1;
@@ -349,7 +349,7 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 			size_t char_len = ascii_palette_lengths[i];
 #endif
 			const vec2 gradient = get_image_gradient(image, x, y);
-			if( i > 1 && magnitude(gradient) > edge_threshold ) {
+			if( magnitude(gradient) > edge_threshold ) {
 				float direction_scaled = direction(gradient) / M_PI * 4. + 5.5;
 				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled, 4.) ];
 				char_len = 1;
