@@ -96,15 +96,15 @@ typedef struct {
 } vec2;
 
 vec2 get_image_gradient(const Image* const image, const int x, const int y) {
-	const float kernel_x[9] = {
-		-4./4.,    0.,
-		 4./4., 0./4.
+	const float kernel_x[4] = {
+		-1., 0.,
+		 1., 0.
 	};
-	const float kernel_y[9] = {
-		-4./4., 4./4.,
-		    0., 0./4.
+	const float kernel_y[4] = {
+		-1., 1.,
+		 0., 0.
 	};
-	const float patch[9] = {
+	const float patch[4] = {
 		image->pixel[get_pixel_index(image, x  , y  )],
 		image->pixel[get_pixel_index(image, x+1, y  )],
 		image->pixel[get_pixel_index(image, x  , y+1)],
