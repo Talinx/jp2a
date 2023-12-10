@@ -85,8 +85,8 @@ void print_image(Image *image, FILE *f) {
 int get_pixel_index(const Image* const image, const int x, const int y) {
 	const float fx = flipx ? image->width - x - 1 : x;
 	const float fy = flipy ? image->height - y - 1 : y;
-	const int cx = fx < 0 ? 0 : fx > image->width ? image->width : fx;
-	const int cy = fy < 0 ? 0 : fy > image->height ? image->height : fy;
+	const int cx = fx < 0 ? 0 : fx > image->width - 1 ? image->width - 1 : fx;
+	const int cy = fy < 0 ? 0 : fy > image->height - 1 ? image->height - 1 : fy;
 	return cx + cy * image->width;
 }
 
