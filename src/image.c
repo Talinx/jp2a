@@ -30,7 +30,7 @@
 
 #define ROUND(x) (int) ( 0.5f + x )
 
-static char DIRECTIONAL_CHARS[4] = "\\=/|";
+static char DIRECTIONAL_CHARS[4] = "=/|\\";
 
 void print_border(const int width) {
 	#ifndef HAVE_MEMSET
@@ -164,8 +164,10 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 			size_t char_len = ascii_palette_lengths[i];
 #endif
 			if( magnitude(gradient) > edge_threshold ) {
-				float direction_scaled = direction(gradient) / M_PI * 4. + 5.5;
-				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled, 4.) ];
+				// scale the gradient direction in the range -2 to 2, then add .5 to offset direction bins to match character directions
+				float direction_scaled = direction(gradient) / M_PI * 4. + .5;
+				// use +4 and fmod to bring the direction into the range 0-4, then use (int) to get an index 0-3 into DIRECTIONAL_CHARS array
+				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled + 4., 4.) ];
 				char_len = 1;
 			}
 
@@ -358,8 +360,10 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 			size_t char_len = ascii_palette_lengths[i];
 #endif
 			if( magnitude(gradient) > edge_threshold ) {
-				float direction_scaled = direction(gradient) / M_PI * 4. + 5.5;
-				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled, 4.) ];
+				// scale the gradient direction in the range -2 to 2, then add .5 to offset direction bins to match character directions
+				float direction_scaled = direction(gradient) / M_PI * 4. + .5;
+				// use +4 and fmod to bring the direction into the range 0-4, then use (int) to get an index 0-3 into DIRECTIONAL_CHARS array
+				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled + 4., 4.) ];
 				char_len = 1;
 			}
 			memcpy(char_dest, char_start, char_len);
