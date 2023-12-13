@@ -135,6 +135,14 @@ Print program version.
 .B \-\-zoom
 Sets output dimensions to your entire terminal window, disregarding source image
 aspect ratio.
+.TP
+.B \-\-edge\-threshold= ...
+Specifies an image gradient above which to shade lines and edges with directional glyphs (such as -/|\\).
+The right value to pick up the edges nicely will depend on the image but might be around 0.5.
+.TP
+.B \-\-edges-only
+Only draw edges, so that the resulting image is like a line drawing or edge detector. This option should
+be used in conjunction with \-\-edge\-threshold so that edges are drawn.
 .SH RETURN VALUES
 jp2a returns 1 when errors are encountered, zero for no errors.
 .SH EXAMPLES
@@ -180,6 +188,12 @@ http://foo.bar/image.jpg |
 \- jpg:- |
 .B jp2a
 \-
+.PP
+You can pass the \-\-edge\-threshold option to highlight the edges of the image, or add the
+\-\-edges\-only option to draw only the edges, to produce a line drawing.
+.PP
+.B jp2a
+\-\-edge\-threshold=0.5 \-\-edges\-only imagefile.jpg
 .SH DOWNLOADING IMAGES FROM THE NET
 If you have compiled jp2a with libcurl(3), you can download images by specifying URLs:
 
