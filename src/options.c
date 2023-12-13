@@ -458,5 +458,10 @@ void parse_options(int argc, char** argv) {
 		}
 	}
 
+	if ( edges_only && edge_threshold == 100. ) {
+		fputs("If you pass the --edges-only option, you must also pass the --edge-threshold= option.\n", stderr);
+		exit(1);
+	}
+
 	precalc_rgb(redweight, greenweight, blueweight);
 }
