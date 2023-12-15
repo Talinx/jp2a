@@ -61,7 +61,7 @@ char* html_title = NULL;
 int html_rawoutput = 0;
 int debug = 0;
 int clearscr = 0;
-float edge_threshold = 100.;
+float edge_threshold = EDGE_THRESHOLD_DEFAULT;
 int edges_only = 0;
 int term_width = 0;
 int term_height = 0;
@@ -458,7 +458,7 @@ void parse_options(int argc, char** argv) {
 		}
 	}
 
-	if ( edges_only && edge_threshold == 100. ) {
+	if ( edges_only && edge_threshold == EDGE_THRESHOLD_DEFAULT ) {
 		fputs("If you pass the --edges-only option, you must also pass the --edge-threshold= option.\n", stderr);
 		exit(1);
 	}
