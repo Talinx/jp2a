@@ -61,6 +61,8 @@ char* html_title = NULL;
 int html_rawoutput = 0;
 int debug = 0;
 int clearscr = 0;
+float edge_threshold = EDGE_THRESHOLD_DEFAULT;
+int edges_only = 0;
 int term_width = 0;
 int term_height = 0;
 int usecolors = 0;
@@ -130,6 +132,8 @@ void help() {
 "                        values are: 4 (for ANSI), 8 (for 256 color palette)\n"
 "                        and 24 (for truecolor or 24-bit color).\n"
 "  -d, --debug       Print additional debug information.\n"
+"      --edge-threshold=N.N   Image gradient above which to shade lines and edges with directional glyphs (such as -/|\\).\n"
+"      --edges-only  Only draw edges - make sure you use it with the edge-threshold option so edges are drawn.\n"
 "      --fill        When used with --color and/or --htmlls or --xhtml, color\n"
 "                    each character's background.\n"
 "  -x, --flipx       Flip image in X direction.\n"
@@ -253,6 +257,7 @@ void parse_options(int argc, char** argv) {
 		IF_OPTS("-x", "--flipx")                 { flipx = 1; continue; }
 		IF_OPTS("-y", "--flipy")                 { flipy = 1; continue; }
 		IF_OPTS("-V", "--version")               { print_version(); exit(0); }
+		IF_OPT("--edges-only")                   { edges_only = 1; continue; }
 		IF_VAR ("--width=%d", &width)            { auto_height += 1; continue; }
 		IF_VAR ("--height=%d", &height)          { auto_width += 1; continue; }
 		IF_VAR ("--red=%f", &redweight)          { continue; }
@@ -260,6 +265,8 @@ void parse_options(int argc, char** argv) {
 		IF_VAR ("--blue=%f", &blueweight)        { continue; }
 		IF_VAR ("--html-fontsize=%d",
 			&html_fontsize)             { continue; }
+		IF_VAR ("--edge-threshold=%f",
+			&edge_threshold)            { continue; }
 
 		IF_VARS("--size=%dx%d",&width, &height) {
 			auto_width = auto_height = 0; continue;
@@ -449,6 +456,11 @@ void parse_options(int argc, char** argv) {
 			fprintf(stderr, "Not enough memory.");
 			exit(1);
 		}
+	}
+
+	if ( edges_only && edge_threshold == EDGE_THRESHOLD_DEFAULT ) {
+		fputs("If you pass the --edges-only option, you must also pass the --edge-threshold= option.\n", stderr);
+		exit(1);
 	}
 
 	precalc_rgb(redweight, greenweight, blueweight);

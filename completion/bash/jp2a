@@ -10,10 +10,13 @@ _jp2a()
         --grayscale --html --htmlls --xhtml --html-fill --html-no-bold --html-raw --border
         --invert --background= --flipx --flipy --version --width= --height=
         --red= --green= --blue= --html-fontsize= --size= --term-zoom
-        --term-height --term-width --term-fit --output= --html-title= --chars="
+        --term-height --term-width --term-fit --output= --html-title= --chars=
+        --edge-threshold= --edges-only"
         case $cur in
                 --*)
 						COMPREPLY=( $(compgen -W "${OPTS}" -- $cur) )
+						# Add space if there is not a '=' in suggestions
+						[[ ! "${COMPREPLY[@]}" =~ "=" ]] && compopt +o nospace
 						return 0
                         ;;
         esac
@@ -22,6 +25,6 @@ _jp2a()
         COMPREPLY=( $(compgen -f -- $cur) )
         return 0
 }
-complete -F _jp2a jp2a
+complete -F _jp2a -o nospace jp2a
 
 # ex: filetype=sh

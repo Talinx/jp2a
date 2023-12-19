@@ -26,8 +26,11 @@
 #include "jp2a.h"
 #include "options.h"
 #include "html.h"
+#include <math.h>
 
 #define ROUND(x) (int) ( 0.5f + x )
+
+static char DIRECTIONAL_CHARS[4] = "=/|\\";
 
 void print_border(const int width) {
 	#ifndef HAVE_MEMSET
@@ -79,51 +82,97 @@ void print_image(Image *image, FILE *f) {
 	else if ( xhtml && !html_rawoutput ) print_xhtml_image_end(f);
 }
 
+int get_pixel_index(const Image* const image, const int x, const int y) {
+	const float fx = flipx ? image->width - x - 1 : x;
+	const float fy = flipy ? image->height - y - 1 : y;
+	const int cx = fx < 0 ? 0 : fx > image->width - 1 ? image->width - 1 : fx;
+	const int cy = fy < 0 ? 0 : fy > image->height - 1 ? image->height - 1 : fy;
+	return cx + cy * image->width;
+}
+
+typedef struct {
+	float x;
+	float y;
+} vec2;
+
+vec2 get_image_gradient(const Image* const image, const int x, const int y) {
+	const float kernel_x[4] = {
+		-1., 0.,
+		 1., 0.
+	};
+	const float kernel_y[4] = {
+		-1., 1.,
+		 0., 0.
+	};
+	const float patch[4] = {
+		image->pixel[get_pixel_index(image, x  , y  )],
+		image->pixel[get_pixel_index(image, x+1, y  )],
+		image->pixel[get_pixel_index(image, x  , y+1)],
+		image->pixel[get_pixel_index(image, x+1, y+1)],
+	};
+	vec2 grad = {0., 0.};
+	for( int i = 0; i < 4; ++i ) {
+		grad.x += kernel_x[i] * patch[i];
+		grad.y += kernel_y[i] * patch[i];
+	}
+	return grad;
+}
+
+float magnitude( const vec2 v ) {
+	return sqrtf( v.x*v.x + v.y*v.y );
+}
+
+float direction( const vec2 v ) {
+	return atan(v.y / v.x);
+}
+
 void print_image_colors(const Image* const image, const int chars, FILE* f) {
 
-	int x, y;
-	int xstart, xend, xincr;
-
-	for ( y=0;  y < image->height; ++y ) {
+	for ( int y=0;  y < image->height; ++y ) {
 
 		if ( use_border ) fprintf(f, "|");
 
-		xstart = 0;
-		xend   = image->width;
-		xincr  = 1;
+		for ( int x=0; x < image->width; x += 1 ) {
 
-		if ( flipx ) {
-			xstart = image->width - 1;
-			xend = -1;
-			xincr = -1;
-		}
-
-		for ( x=xstart; x != xend; x += xincr ) {
-
-			float Y = image->pixel[x + (flipy? image->height - y - 1 : y ) * image->width];
-			float Y_inv = 1.0f - Y;
-			float R = image->red  [x + (flipy? image->height - y - 1 : y ) * image->width];
-			float G = image->green[x + (flipy? image->height - y - 1 : y ) * image->width];
-			float B = image->blue [x + (flipy? image->height - y - 1 : y ) * image->width];
-			float A = image->alpha [x + (flipy? image->height - y - 1 : y ) * image->width];
+			const int pixel_index = get_pixel_index(image, x, y);
+			float Y = image->pixel[pixel_index];
+			float R = image->red  [pixel_index];
+			float G = image->green[pixel_index];
+			float B = image->blue [pixel_index];
+			float A = image->alpha[pixel_index];
 			R *= A;
 			G *= A;
 			B *= A;
+			const vec2 gradient = get_image_gradient(image, x, y);
+			int pos = ROUND((float)chars * Y);
 
-			const int pos = ROUND((float)chars * (!invert? Y_inv : Y));
-			int i = ROUND((float)pos * A);
-#if ASCII
-			char ch = ascii_palette[i];
-#define	PRINTF_FORMAT_TYPE "%c"
-#else
-			char ch[MB_LEN_MAX + 1];
-			ch[0] = ascii_palette[ascii_palette_indizes[i]];
-			for ( size_t j = 1; j < ascii_palette_lengths[i]; j++ ) {
-				ch[j] = ascii_palette[ascii_palette_indizes[i] + j];
+			if( edges_only && magnitude(gradient) < edge_threshold ) {
+				pos = 0;
 			}
-			ch[ascii_palette_lengths[i]] = '\0';
+
+			int i = invert? pos : chars - pos;
+			i = ROUND((float)i * A);
+
+			char ch[MB_LEN_MAX + 1];
 #define PRINTF_FORMAT_TYPE "%s"
+
+#if ASCII
+			char* char_start = &ascii_palette[i];
+			size_t char_len = 1;
+#else
+			char* char_start = &ascii_palette[ascii_palette_indizes[i]];
+			size_t char_len = ascii_palette_lengths[i];
 #endif
+			if( magnitude(gradient) > edge_threshold ) {
+				// scale the gradient direction in the range -2 to 2, then add .5 to offset direction bins to match character directions
+				float direction_scaled = direction(gradient) / M_PI * 4. + .5;
+				// use +4 and fmod to bring the direction into the range 0-4, then use (int) to get an index 0-3 into DIRECTIONAL_CHARS array
+				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled + 4., 4.) ];
+				char_len = 1;
+			}
+
+			memcpy(ch, char_start, char_len);
+			ch[char_len] = '\0';
 
 			const float min = 1.0f / 255.0f;
 
@@ -268,8 +317,6 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 }
 
 void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
-	int x, y;
-
 #if ASCII
 	#ifdef WIN32
 	char *line = (char*) malloc(image->width + 1);
@@ -283,53 +330,52 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 	#else
 	char line[image->width * MB_LEN_MAX + 1];
 	#endif
-	int curLinePos;
 	line[image->width * MB_LEN_MAX] = 0;
 #endif
 
-	for ( y=0; y < image->height; ++y ) {
+	for ( int y=0; y < image->height; ++y ) {
 
-#if ! ASCII
-		curLinePos = flipx? image->width * MB_LEN_MAX : 0;
-#endif
-		for ( x=0; x < image->width; ++x ) {
+		int curLinePos = 0;
+		for ( int x=0; x < image->width; ++x ) {
 
-			const float lum = image->pixel[x + (flipy? image->height - y - 1 : y) * image->width];
-			const float opacity = image->alpha[x + (flipy? image->height - y - 1 : y) * image->width];
-			const int pos = ROUND((float)chars * lum);
+			const int pixel_index = get_pixel_index(image, x, y);
+			const float lum = image->pixel[pixel_index];
+			const float opacity = image->alpha[pixel_index];
+			const vec2 gradient = get_image_gradient(image, x, y);
+			int pos = ROUND((float)chars * lum);
+
+			if( edges_only && magnitude(gradient) < edge_threshold ) {
+				pos = 0;
+			}
 
 			int i = invert? pos : chars - pos;
 			i = ROUND((float)i * opacity);
+
+			char* char_dest = &line[curLinePos];
 #if ASCII
-			line[flipx? image->width - x - 1 : x] = ascii_palette[i];
+			char* char_start = &ascii_palette[i];
+			size_t char_len = 1;
 #else
-			int paletteI = ascii_palette_indizes[i];
-			if ( flipx )
-				curLinePos -= ascii_palette_lengths[i];
-			line[curLinePos++] = ascii_palette[paletteI];
-			// Add as many bytes as the char's length
-			for ( size_t j = 1; j < ascii_palette_lengths[i]; j++ ) {
-				line[curLinePos++] = ascii_palette[++paletteI];
+			char* char_start = &ascii_palette[ascii_palette_indizes[i]];
+			size_t char_len = ascii_palette_lengths[i];
+#endif
+			if( magnitude(gradient) > edge_threshold ) {
+				// scale the gradient direction in the range -2 to 2, then add .5 to offset direction bins to match character directions
+				float direction_scaled = direction(gradient) / M_PI * 4. + .5;
+				// use +4 and fmod to bring the direction into the range 0-4, then use (int) to get an index 0-3 into DIRECTIONAL_CHARS array
+				char_start = &DIRECTIONAL_CHARS[ (int) fmod(direction_scaled + 4., 4.) ];
+				char_len = 1;
 			}
-			if ( flipx )
-				curLinePos -= ascii_palette_lengths[i];
-#endif
-		}
-#if ASCII
-		fprintf(f, !use_border? "%s\n" : "|%s|\n", line);
-#else
-		if ( !flipx ) {
+			memcpy(char_dest, char_start, char_len);
+			curLinePos += char_len;
 			line[curLinePos] = '\0';
-			fprintf(f, !use_border? "%s\n" : "|%s|\n", line);
-		} else {
-			fprintf(f, !use_border? "%s\n" : "|%s|\n", line + curLinePos);
 		}
-#endif
+		fprintf(f, !use_border? "%s\n" : "|%s|\n", line);
 	}
 
-	#ifdef WIN32
+#ifdef WIN32
 	free(line);
-	#endif
+#endif
 }
 
 void clear(Image* i) {

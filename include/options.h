@@ -18,6 +18,8 @@
 #define ASCII_PALETTE_DEFAULT "   ...',;:clodxkO0KXNWM";
 //! default title for HTML/XHTML documents
 #define HTML_DEFAULT_TITLE "jp2a converted image"
+//! default edge_threshold - very high so no edges will be drawn
+#define EDGE_THRESHOLD_DEFAULT 1000.
 
 extern int verbose; //!< produce verbose output
 extern int auto_height; //!< automatically calculate the output width from the height
@@ -39,6 +41,8 @@ extern int html_rawoutput; //!< produce only the image part and not the rest of 
 extern int html_bold; //!< use bold characters in HTML output
 extern int debug; //!< print debug information
 extern int clearscr; //!< clear the screen before printing an image
+extern float edge_threshold; //!< image gradient above which edges should be drawn with /-\| characters
+extern int edges_only; //!< only draw edges - make sure you use it with the edge-threshold option so edges are drawn
 extern int ascii_palette_length; //!< number of charactrs in the palette
 extern char ascii_palette[]; //!< the palette
 #if ! ASCII
