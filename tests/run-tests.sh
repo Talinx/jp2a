@@ -10,6 +10,9 @@ JP=../src/jp2a
 UNAME=`uname -a`
 UPDATE=no
 
+## FOR LOCAL DEPENDENT INPUTS LIKE --edge-threshold=0.3 TO BE INTERPRETED CORRECTLY
+export LC_ALL=C
+
 if test "`echo ${UNAME} | cut -c1-6`" == "CYGWIN" ; then
 	JP=../src/jp2a.exe
 fi
