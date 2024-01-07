@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([jp2a],[1.1.1],[chris-r@posteo.net], [jp2a], [https://github.com/Talinx/jp2a])
+AC_INIT([jp2a],[1.2.0],[chris-r@posteo.net], [jp2a], [https://github.com/Talinx/jp2a])
 DX_INIT_DOXYGEN([jp2a])
 AM_INIT_AUTOMAKE(dist-bzip2 dist-zip)
 AC_CONFIG_SRCDIR(src/jp2a.c)

@@ -1,3 +1,6 @@
+CHANGES SINCE 1.2.0
+- Add edge shading - edge shading can be enabled by setting the desired edge threshold with --edge-threshold=N.N. Thanks to Oscar Saharoy (https://github.com/OscarSaharoy)
+
 CHANGES SINCE 1.1.1
 - Fix images with very high aspect ratio, e.g. 3000:1
 
