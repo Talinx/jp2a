@@ -1,4 +1,4 @@
-# Version 20200921, by Eriberto Mota, modified by Christoph Raitzig
+# Version 20240904, by Eriberto Mota, modified by Christoph Raitzig
 
 name: full-check
 
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: install_dependencies
       run: sudo apt install libjpeg-dev libpng-dev libcurl4-gnutls-dev libncurses5-dev autoconf-archive pkg-config     
     - name: first_build
