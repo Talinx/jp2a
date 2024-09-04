@@ -31,6 +31,9 @@ jobs:
       run: |
            TERM=xterm-256color jp2a --colors .github/jp2a.jpg
            TERM=xterm-256color jp2a --background=light -b -f -x -y --colors .github/jp2a.jpg
+    - name: run_tests
+      run: |
+          make test
 
   zig-test:
     runs-on: ubuntu-latest
