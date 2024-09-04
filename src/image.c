@@ -1,6 +1,6 @@
 /*
  * Copyright 2006-2016 Christian Stigen Larsen
- * Copyright 2020 Christoph Raitzig
+ * Copyright 2020-2024 Christoph Raitzig
  * Distributed under the GNU General Public License (GPL) v2.
  */
 
@@ -19,6 +19,8 @@
 
 #include "jpeglib.h"
 #include "png.h"
+#include <libexif/exif-data.h>
+#include <libexif/exif-loader.h>
 #include <setjmp.h>
 
 #include "aspect_ratio.h"
@@ -83,11 +85,37 @@ void print_image(Image *image, FILE *f) {
 }
 
 int get_pixel_index(const Image* const image, const int x, const int y) {
-	const float fx = flipx ? image->width - x - 1 : x;
-	const float fy = flipy ? image->height - y - 1 : y;
+	float fx;
+	float fy;
+	switch (image->orientation) {
+		case HORIZONTAL:
+		case MIRROR_HORIZONTAL_ROTATE_90:
+			fx = flipx ? image->width - x - 1 : x;
+			fy = flipy ? image->height - y - 1 : y;
+			break;
+		case MIRROR_HORIZONTAL:
+		case ROTATE_270:
+			fx = flipx ? x : image->width - x - 1;
+			fy = flipy ? image->height - y - 1 : y;
+			break;
+		case ROTATE_180:
+		case MIRROR_HORIZONTAL_ROTATE_270:
+			fx = flipx ? x : image->width - x - 1;
+			fy = flipy ? y : image->height - y - 1;
+			break;
+		case MIRROR_VERTICAL:
+		case ROTATE_90:
+			fx = flipx ? image->width - x - 1 : x;
+			fy = flipy ? y : image->height - y - 1;
+			break;
+
+	}
 	const int cx = fx < 0 ? 0 : fx > image->width - 1 ? image->width - 1 : fx;
 	const int cy = fy < 0 ? 0 : fy > image->height - 1 ? image->height - 1 : fy;
-	return cx + cy * image->width;
+	if ( image->switch_x_y ) {
+		return cy + cx * image->src_width;
+	}
+	return cx + cy * image->src_width;
 }
 
 typedef struct {
@@ -379,12 +407,12 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 }
 
 void clear(Image* i) {
-	memset(i->yadds, 0, i->height * sizeof(int) );
+	memset(i->yadds, 0, i->src_height * sizeof(int) );
 	memset(i->pixel, 0, i->width * i->height * sizeof(float));
 	for ( int j = 0; j < i->width * i->height; ++j ) {
 		i->alpha[j] = 1.0;
 	}
-	memset(i->lookup_resx, 0, (1 + i->width) * sizeof(int) );
+	memset(i->lookup_resx, 0, (1 + i->src_width) * sizeof(int) );
 
 	if ( usecolors ) {
 		memset(i->red,   0, i->width * i->height * sizeof(float));
@@ -402,11 +430,11 @@ void normalize(Image* i) {
 
 	int x, y;
 
-	for ( y=0; y < i->height; ++y ) {
+	for ( y=0; y < i->src_height; ++y ) {
 
 		if ( i->yadds[y] > 1 ) {
 
-			for ( x=0; x < i->width; ++x ) {
+			for ( x=0; x < i->src_width; ++x ) {
 				pixel[x] /= i->yadds[y];
 
 				if ( usecolors ) {
@@ -417,12 +445,12 @@ void normalize(Image* i) {
 			}
 		}
 
-		pixel += i->width;
+		pixel += i->src_width;
 
 		if ( usecolors ) {
-			red   += i->width;
-			green += i->width;
-			blue  += i->width;
+			red   += i->src_width;
+			green += i->src_width;
+			blue  += i->src_width;
 		}
 	}
 }
@@ -443,10 +471,36 @@ void print_progress(float progress) {
 	fflush(stderr);
 }
 
-void print_info_jpeg(const struct jpeg_decompress_struct* jpg) {
+void print_info_jpeg(const struct jpeg_decompress_struct* jpg, const Orientation orientation) {
 	fprintf(stderr, "Source width: %d\n", jpg->output_width);
 	fprintf(stderr, "Source height: %d\n", jpg->output_height);
 	fprintf(stderr, "Source color components: %d\n", jpg->output_components);
+	switch ( orientation ) {
+		case HORIZONTAL:
+			fprintf(stderr, "Orientation: 1 (Horizontal/normal)\n");
+			break;
+		case MIRROR_HORIZONTAL:
+			fprintf(stderr, "Orientation: 2 (Mirror horizontal)\n");
+			break;
+		case ROTATE_180:
+			fprintf(stderr, "Orientation: 3 (Rotate 180)\n");
+			break;
+		case MIRROR_VERTICAL:
+			fprintf(stderr, "Orientation: 4 (Mirror vertical)\n");
+			break;
+		case MIRROR_HORIZONTAL_ROTATE_90:
+			fprintf(stderr, "Orientation: 5 (Mirror horizontal and rotate 90)\n");
+			break;
+		case ROTATE_270:
+			fprintf(stderr, "Orientation: 6 (Rotate 270)\n");
+			break;
+		case MIRROR_HORIZONTAL_ROTATE_270:
+			fprintf(stderr, "Orientation: 7 (Mirror horizontal and rotate 270)\n");
+			break;
+		case ROTATE_90:
+			fprintf(stderr, "Orientation: 8 (Rotate 90)\n");
+			break;
+	}
 	fprintf(stderr, "Output width: %d\n", width);
 	fprintf(stderr, "Output height: %d\n", height);
 	fprintf(stderr, "Output palette (%d chars): '%s'\n", ascii_palette_length, ascii_palette);
@@ -495,12 +549,12 @@ void process_scanline_jpeg(const struct jpeg_decompress_struct *jpg, const JSAMP
 
 	float *pixel, *red, *green, *blue, *alpha;
 
-	pixel  = &i->pixel[lasty * i->width];
+	pixel  = &i->pixel[lasty * i->src_width];
 	red = green = blue = NULL;
-	alpha  = &i->alpha[lasty * i->width];
+	alpha  = &i->alpha[lasty * i->src_width];
 
 	if ( usecolors ) {
-		int offset = lasty * i->width;
+		int offset = lasty * i->src_width;
 		red   = &i->red  [offset];
 		green = &i->green[offset];
 		blue  = &i->blue [offset];
@@ -511,7 +565,7 @@ void process_scanline_jpeg(const struct jpeg_decompress_struct *jpg, const JSAMP
 		const int components = jpg->out_color_components;
 
 		int x;
-		for ( x=0; x < i->width; ++x ) {
+		for ( x=0; x < i->src_width; ++x ) {
 			const JSAMPLE *src     = &scanline[i->lookup_resx[x] * jpg->out_color_components];
 			const JSAMPLE *src_end = &scanline[i->lookup_resx[x+1] * jpg->out_color_components];
 
@@ -550,13 +604,13 @@ void process_scanline_jpeg(const struct jpeg_decompress_struct *jpg, const JSAMP
 
 		++i->yadds[lasty++];
 
-		pixel += i->width;
-		alpha += i->width;
+		pixel += i->src_width;
+		alpha += i->src_width;
 
 		if ( usecolors ) {
-			red   += i->width;
-			green += i->width;
-			blue  += i->width;
+			red   += i->src_width;
+			green += i->src_width;
+			blue  += i->src_width;
 		}
 	}
 
@@ -571,12 +625,12 @@ void process_scanline_png(const png_bytep row, const int current_y, const int co
 
 	float *pixel, *red, *green, *blue, *alpha;
 
-	pixel  = &i->pixel[lasty * i->width];
+	pixel  = &i->pixel[lasty * i->src_width];
 	red = green = blue = NULL;
-	alpha = &i->alpha[lasty * i->width];
+	alpha = &i->alpha[lasty * i->src_width];
 
 	if ( usecolors ) {
-		int offset = lasty * i->width;
+		int offset = lasty * i->src_width;
 		red   = &i->red  [offset];
 		green = &i->green[offset];
 		blue  = &i->blue [offset];
@@ -585,7 +639,7 @@ void process_scanline_png(const png_bytep row, const int current_y, const int co
 	while ( lasty <= y ) {
 
 		int x;
-		for ( x=0; x < i->width; ++x ) {
+		for ( x=0; x < i->src_width; ++x ) {
 
 			int adds = 0;
 
@@ -633,13 +687,13 @@ void process_scanline_png(const png_bytep row, const int current_y, const int co
 
 		++i->yadds[lasty++];
 
-		pixel += i->width;
-		alpha += i->width;
+		pixel += i->src_width;
+		alpha += i->src_width;
 
 		if ( usecolors ) {
-			red   += i->width;
-			green += i->width;
-			blue  += i->width;
+			red   += i->src_width;
+			green += i->src_width;
+			blue  += i->src_width;
 		}
 	}
 
@@ -656,15 +710,19 @@ void free_image(Image* i) {
 	if ( i->lookup_resx ) free(i->lookup_resx);
 }
 
-void malloc_image(Image* i) {
+void malloc_image(Image* i, int switch_x_y) {
+	i->orientation = HORIZONTAL;
+	i->switch_x_y = switch_x_y;
 	i->pixel = i->red = i->green = i->blue = i->alpha = NULL;
 	i->yadds = NULL;
 	i->lookup_resx = NULL;
 
 	i->width = width;
 	i->height = height;
+	i->src_width = switch_x_y ? height : width;
+	i->src_height = switch_x_y ? width : height;
 
-	i->yadds = (int*) malloc(height * sizeof(int));
+	i->yadds = (int*) malloc(i->src_height * sizeof(int));
 	i->pixel = (float*) malloc(width*height*sizeof(float));
 	i->alpha = (float*) malloc(width*height*sizeof(float));
 
@@ -675,7 +733,7 @@ void malloc_image(Image* i) {
 	}
 
 	// we allocate one extra pixel for resx because of the src .. src_end stuff in process_scanline_jpeg and the equivalent in for PNG
-	i->lookup_resx = (int*) malloc( (1 + width) * sizeof(int));
+	i->lookup_resx = (int*) malloc( (1 + i->src_width) * sizeof(int));
 
 	if ( !(i->pixel && i->alpha && i->yadds && i->lookup_resx) ||
 	     (usecolors && !(i->red && i->green && i->blue)) )
@@ -690,14 +748,64 @@ void init_image(Image *i, int src_width, int src_height) {
 	int dst_x;
 
 	if ( src_height > 1 )
-		i->resize_y = (float) (i->height - 1) / (float) (src_height - 1);
+		i->resize_y = (float) (i->src_height - 1) / (float) (src_height - 1);
 	else
 		i->resize_y = 1;
-	i->resize_x = (float) (src_width - 1) / (float) (i->width );
+	i->resize_x = (float) (src_width - 1) / (float) (i->src_width );
 
-	for ( dst_x=0; dst_x <= i->width; ++dst_x ) {
+
+	for ( dst_x=0; dst_x <= i->src_width; ++dst_x ) {
 		i->lookup_resx[dst_x] = ROUND( (float) dst_x * i->resize_x );
 	}
+}
+
+
+Orientation get_orientation(FILE *imageFP) {
+	char orientationTag[13] = "Top-left";  // default to horizontal/normal
+
+	size_t size;
+	unsigned char data[1024];
+	ExifData *edata;
+	ExifLoader *loader;
+	loader = exif_loader_new();
+	while ( 1 ) {
+		size = fread(data, 1, sizeof(data), imageFP);
+		if (size <= 0) {
+			break;
+		}
+		if (!exif_loader_write(loader, data, size)) {
+			break;
+		}
+	}
+	rewind(imageFP);
+	edata = exif_loader_get_data(loader);
+	exif_loader_unref(loader);
+	if ( edata ) {
+		ExifEntry *entry = exif_content_get_entry(edata->ifd[EXIF_IFD_0], EXIF_TAG_ORIENTATION);
+		if ( entry ) {
+			exif_entry_get_value(entry, orientationTag, sizeof(orientationTag));
+		}
+		exif_data_unref(edata);
+	}
+
+	if ( strcmp(orientationTag, "Top-left" ) == 0) {
+		return HORIZONTAL;
+	} else if ( strcmp(orientationTag, "Top-right" ) == 0) {
+		return MIRROR_HORIZONTAL;
+	} else if ( strcmp(orientationTag, "Bottom-right" ) == 0) {
+		return ROTATE_180;
+	} else if ( strcmp(orientationTag, "Bottom-left" ) == 0) {
+		return MIRROR_VERTICAL;
+	} else if ( strcmp(orientationTag, "Left-top" ) == 0) {
+		return MIRROR_HORIZONTAL_ROTATE_90;
+	} else if ( strcmp(orientationTag, "Right-top" ) == 0) {
+		return ROTATE_270;
+	} else if ( strcmp(orientationTag, "Right-bottom" ) == 0) {
+		return MIRROR_HORIZONTAL_ROTATE_270;
+	} else if ( strcmp(orientationTag, "Left-bottom" ) == 0) {
+		return ROTATE_90;
+	}
+	return HORIZONTAL;
 }
 
 void decompress_jpeg(FILE *fp, FILE *fout, error_collector *errors) {
@@ -705,6 +813,18 @@ void decompress_jpeg(FILE *fp, FILE *fout, error_collector *errors) {
 		print_errors(errors);
 		return;
 	}
+
+	Orientation orientation = get_orientation(fp);
+	int switch_x_y = 0;
+	if (
+			orientation == MIRROR_HORIZONTAL_ROTATE_90 ||
+			orientation == ROTATE_270 ||
+			orientation == MIRROR_HORIZONTAL_ROTATE_270 ||
+			orientation == ROTATE_90
+	) {
+		switch_x_y = 1;
+	}
+
 	int row_stride;
 	my_jpeg_error_mgr jerr;
 	struct jpeg_decompress_struct jpg;
@@ -737,15 +857,16 @@ void decompress_jpeg(FILE *fp, FILE *fout, error_collector *errors) {
 
 	buffer = (*jpg.mem->alloc_sarray)((j_common_ptr) &jpg, JPOOL_IMAGE, row_stride, 1);
 
-	aspect_ratio(jpg.output_width, jpg.output_height);
+	aspect_ratio(jpg.output_width, jpg.output_height, switch_x_y);
 
-	if ( verbose ) print_info_jpeg(&jpg);
+	if ( verbose ) print_info_jpeg(&jpg, orientation);
 
 	if ( height != 0 && width != 0 ) {
-		malloc_image(&image);
+		malloc_image(&image, switch_x_y);
 		clear(&image);
 
 		init_image(&image, jpg.output_width, jpg.output_height);
+		image.orientation = orientation;
 
 		while ( jpg.output_scanline < jpg.output_height ) {
 			jpeg_read_scanlines(&jpg, buffer, 1);
@@ -808,12 +929,12 @@ void decompress_png(FILE *fp, FILE *fout, error_collector *errors) {
 	int png_width = png_get_image_width(png_ptr, info_ptr);
 	int png_height = png_get_image_height(png_ptr, info_ptr);
 
-	aspect_ratio(png_width, png_height);
+	aspect_ratio(png_width, png_height, 0);
 
 	if ( verbose ) print_info_png(png_ptr, info_ptr);
 
 	if ( height != 0 && width != 0 ) {
-		malloc_image(&image);
+		malloc_image(&image, 0);
 		clear(&image);
 
 

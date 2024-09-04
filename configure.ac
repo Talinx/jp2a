@@ -32,6 +32,7 @@ AC_ARG_WITH([curl-config],
 
 AC_CHECK_LIB([jpeg], [jpeg_start_decompress], [LIBS="$LIBS -ljpeg"])
 AC_CHECK_LIB([png], [png_create_read_struct], [LIBS="$LIBS -lpng"])
+AC_CHECK_LIB([exif], [exif_data_new_from_file], [LIBS="$LIBS -lexif"])
 # jp2a uses isfinite from math.h but that can be implemented as a macro so search for another actual function (floor) instead
 AC_SEARCH_LIBS([floor], [m])
 

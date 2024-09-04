@@ -2,6 +2,7 @@ File: jp2a.jpg
 Source width: 80
 Source height: 50
 Source color components: 1
+Orientation: 1 (Horizontal/normal)
 Output width: 78
 Output height: 24
 Output palette (23 chars): '   ...',;:clodxkO0KXNWM'

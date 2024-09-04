@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: install_dependencies
-      run: sudo apt install libjpeg-dev libpng-dev libcurl4-gnutls-dev libncurses5-dev autoconf-archive pkg-config     
+      run: sudo apt install libjpeg-dev libpng-dev libcurl4-gnutls-dev libncurses5-dev libexif-dev autoconf-archive pkg-config
     - name: first_build
       run: |
            ./autogen.sh
@@ -40,7 +40,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: install_dependencies
-      run: sudo apt install libjpeg-dev libpng-dev libcurl4-gnutls-dev libncurses5-dev autoconf-archive pkg-config
+      run: sudo apt install libjpeg-dev libpng-dev libcurl4-gnutls-dev libncurses5-dev libexif-dev autoconf-archive pkg-config
     - uses: goto-bus-stop/setup-zig@v2
     - name: build with zig
       run: |

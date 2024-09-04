@@ -159,6 +159,16 @@ test_jp2a "size, curl download" "--size=454x207 http://jp2a.sourceforge.net/jp2a
 test_jp2a "size, curl download" "--size=454x207 http://jp2a.sf.net/jp2a.jpg" normal-curl.txt
 test_jp2a "very long jpg" "long.jpg" no-output.txt
 test_jp2a "very long png" "long.png" no-output.txt
+test_jp2a "Exif orientation 2" "--width=78 jp2a-mirror-horizontal.jpg" jp2a-mirror-horizontal.txt
+test_jp2a "Exif orientation 3" "--width=78 jp2a-rotate-180.jpg" jp2a-rotate-180.txt
+test_jp2a "Exif orientation 4" "--width=78 jp2a-mirror-vertical.jpg" jp2a-mirror-vertical.txt
+test_jp2a "Exif orientation 5" "--width=78 jp2a-horizontal-270.jpg" jp2a-horizontal-270.txt
+test_jp2a "Exif orientation 6" "--width=78 jp2a-rotate-90.jpg" jp2a-rotate-90.txt
+test_jp2a "Exif orientation 7" "--width=78 jp2a-horizontal-90.jpg" jp2a-horizontal-90.txt
+test_jp2a "Exif orientation 8" "--width=78 jp2a-rotate-270.jpg" jp2a-rotate-270.txt
+test_jp2a "Exif orientation 5, color" "--width=78 --color --color-depth=24 jp2a-colorful-horizontal-270.jpg" jp2a-colorful-horizontal-270.txt
+test_jp2a "Exif orientation 2, flipx" "--width=78 --flipx jp2a-mirror-horizontal.jpg" jp2a-mirror-horizontal-flipx.txt
+test_jp2a "Exif orientation 6, flipy" "--width=78 --flipy jp2a-rotate-90.jpg" jp2a-rotate-90-flipy.txt
 test_jp2a "edges" "--width=128 --edge-threshold=0.3 jp2a.jpg" edges.txt
 test_jp2a "edges only" "--width=128 --edge-threshold=0.3 --edges-only jp2a.jpg" edges-only.txt
 test_jp2a "edges only, invert" "--width=128 --edge-threshold=0.3 --edges-only --invert jp2a.jpg" edges-only-invert.txt

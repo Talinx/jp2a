@@ -1,6 +1,6 @@
 /*! \file
  * \noop Copyright 2006-2016 Christian Stigen Larsen
- * \noop Copyright 2020 Christoph Raitzig
+ * \noop Copyright 2020-2024 Christoph Raitzig
  *
  * \brief Functions that work directly with images.
  *
@@ -30,6 +30,22 @@
 
 #include "html.h"
 
+/*! \enum Orientation
+ * \brief Image orientation
+ *
+ * The displayed image orientation can differ from how the image is stored in a file based on Exif metadata.
+ */
+typedef enum {
+	HORIZONTAL,
+	MIRROR_HORIZONTAL,
+	ROTATE_180,
+	MIRROR_VERTICAL,
+	MIRROR_HORIZONTAL_ROTATE_90,
+	ROTATE_270,
+	MIRROR_HORIZONTAL_ROTATE_270,
+	ROTATE_90
+} Orientation;
+
 /*! \struct Image_
  * \brief Holds a decompressed image.
  *
@@ -38,6 +54,10 @@
 typedef struct Image_ {
 	int width; //!< width
 	int height; //!< height
+	Orientation orientation; //!< orientation
+	int switch_x_y; //!< whether stored x-y-dimensions differ from displayed ones due to a rotation
+	int src_width; //!< width in source orientation - differs from width if x and y dimensions are switched
+	int src_height; //!< height in source orientation - differs from height if x and y dimensions are switched
 	float *pixel; //!< luminosities (i.e. gray values)
 	float *red; //!< red part
 	float *green; //!< green part
@@ -148,8 +168,9 @@ void print_progress(float progress);
  * \brief Prints some information about the image and how it will be printed.
  *
  * \param jpg contains information about the JPEG image
+ * \param orientation image orientation (read from Exif metadata)
  */
-void print_info_jpeg(const struct jpeg_decompress_struct* jpg);
+void print_info_jpeg(const struct jpeg_decompress_struct* jpg, const Orientation orientation);
 
 /*!
  * \brief Prints some information about the image and how it will be printed.
@@ -192,8 +213,9 @@ void free_image(Image* i);
  * \brief Allocates memory for holding the pixels etc. Sets the width and height.
  *
  * \param i the image
+ * \param switch_x_y whether to switch x and y dimensions, this is the case when the stored pixels differ from the displayed pixels due to a rotation
  */
-void malloc_image(Image* i);
+void malloc_image(Image* i, int switch_x_y);
 
 /*!
  * \brief Sets internal values necessary for processing scanlines.
@@ -203,6 +225,17 @@ void malloc_image(Image* i);
  * \param src_height height of the source image
  */
 void init_image(Image *i, int src_width, int src_height);
+
+/*!
+ * \brief Get the image orientation
+ *
+ * Determine the image orientation from EXIF metadata.
+ *
+ * Rewinds the file.
+ *
+ * \param imageFP image file pointer
+ */
+Orientation get_orientation(FILE *imageFP);
 
 /*!
  * \brief Decompresses and prints an image.
