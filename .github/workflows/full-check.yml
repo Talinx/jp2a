@@ -31,3 +31,19 @@ jobs:
       run: |
            TERM=xterm-256color jp2a --colors .github/jp2a.jpg
            TERM=xterm-256color jp2a --background=light -b -f -x -y --colors .github/jp2a.jpg
+
+  zig-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: install_dependencies
+      run: sudo apt install libjpeg-dev libpng-dev libcurl4-gnutls-dev libncurses5-dev autoconf-archive pkg-config
+    - uses: goto-bus-stop/setup-zig@v2
+    - name: build with zig
+      run: |
+          ./autogen.sh
+          CC="zig cc" ./configure
+          make
+    - name: run tests
+      run: |
+          make test
