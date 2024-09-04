@@ -24,8 +24,11 @@
 #include <stdlib.h>
 #endif
 
+#include <stdint.h>
+
 #include "jpeglib.h"
 #include "png.h"
+#include "webp/decode.h"
 #include <setjmp.h>
 
 #include "html.h"
@@ -90,16 +93,26 @@ typedef struct my_jpeg_error_mgr {
  */
 typedef struct my_jpeg_error_mgr *my_jpeg_error_ptr;
 
+/*!
+ * \brief WebP image data struct
+ */
+typedef struct {
+	uint8_t* data;
+	size_t size;
+} webp_data;
+
 /*! \struct error_collector
  * \brief Contains and collects errors that occur while decompressing an image.
  *
- * With this struct decompress_jpeg() and decompress_png() can be called recursively since #jpeg_status and #png_status can be used to determine whether a previous call failed or not.
+ * With this struct decompress_jpeg(), decompress_png() and decompress_webp() can be called recursively since #jpeg_status, #png_status and #webp_status can be used to determine whether a previous call failed or not.
  */
 typedef struct error_collector {
 	my_jpeg_error_mgr *jpeg_error; //!< contains information about a JPEG decompression error
 	char *png_error_msg; //!< error message for a PNG decompression error
+	char *webp_error_msg; //!< error message for a WebP decompression error
 	int jpeg_status; //!< true if an error occurred during JPEG decompression, false otherwise
 	int png_status; //!< true if an error occurred during PNG decompression, false otherwise
+	int webp_status; //!< true if an error occurred during WebP decompression, false otherwise
 } error_collector;
 /*!
  * \typedef error_collector
@@ -180,6 +193,14 @@ void print_info_jpeg(const struct jpeg_decompress_struct* jpg, const Orientation
  */
 void print_info_png(const png_structp png_ptr, const png_infop info_ptr);
 
+
+/*!
+ * \brief Prints some information about the image and how it will be printed.
+ *
+ * \param config WebP decoding information
+ */
+void print_info_webp(WebPDecoderConfig* config);
+
 /*!
  * \brief Processes a scanline of a JPEG image.
  *
@@ -240,7 +261,7 @@ Orientation get_orientation(FILE *imageFP);
 /*!
  * \brief Decompresses and prints an image.
  *
- * Calls decompress_png() if the image is not a JPEG image.
+ * Calls decompress_webp() if the image is not a JPEG image.
  * Instead prints errors if there was an error when decompressing this image as JPEG previously.
  *
  * \param fin input stream, has to be seekable
@@ -267,6 +288,32 @@ void jpeg_error_exit(j_common_ptr jerr);
  * \param errors contains previous errors and is used to save errors
  */
 void decompress_png(FILE *fin, FILE *fout, error_collector *errors);
+
+/*!
+ * \brief Read WebP image into a buffer
+ *
+ * \param fp input stream
+ */
+webp_data* get_webp_data(FILE *fp);
+
+/*!
+ * \brief Free WebP image buffer
+ * 
+ * \param data WebP data
+ */
+void free_webp_data(webp_data* data);
+
+/*!
+ * \brief Decompresses and prints an image.
+ *
+ * Calls decompress_png() if the image is not a WebP image.
+ * Instead prints errors if there was an error when decompressing this image as WebP previously.
+ *
+ * \param fin input stream, has to be seekable
+ * \param fout stream to print the image to
+ * \param errors contains previous errors and is used to save errors
+ */
+void decompress_webp(FILE *fp, FILE *fout, error_collector *errors);
 
 /*!
  * \brief Prints errors.

@@ -155,6 +155,8 @@ test_jp2a "big size" "--size=2000x2000 dalsnuten-640x480-gray-low.jpg jp2a.jpg |
 test_jp2a "PNG invert" "--invert --color --size=144x36 jp2a-colorful.png" jp2a-png-invert.txt
 test_jp2a "PNG colormap standard input" "2>/dev/null ; cat jp2a-colormap.png | ${JP} - --size=144x36" jp2a-png-colormap.txt
 test_jp2a "PNG interlaced 16-bit" "--size=300x150 --color jp2a-interlaced-16-bit.png" jp2a-png-interlaced-16-bit.txt
+test_jp2a "WebP" "--width=78 jp2a.webp" jp2a-webp.txt
+test_jp2a "WebP scale up" "--width=120 jp2a.webp" jp2a-webp-scale-up.txt
 test_jp2a "size, curl download" "--size=454x207 http://jp2a.sourceforge.net/jp2a.jpg" normal-curl.txt
 test_jp2a "size, curl download" "--size=454x207 http://jp2a.sf.net/jp2a.jpg" normal-curl.txt
 test_jp2a "very long jpg" "long.jpg" no-output.txt

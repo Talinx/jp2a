@@ -142,6 +142,8 @@ int main(int argc, char** argv) {
 					int urllen = strlen(argv[n]);
 					if ( urllen > 4 && strcmp(".png", argv[n] + (urllen - 4)) == 0 )
 						decompress_png(buffer_f, fout, &errors);
+					else if ( urllen > 5 && strcmp(".webp", argv[n] + (urllen - 5)) == 0 )
+						decompress_webp(buffer_f, fout, &errors);
 					else
 						decompress_jpeg(buffer_f, fout, &errors);
 					fclose(buffer_f);
@@ -167,6 +169,8 @@ int main(int argc, char** argv) {
 			int namelen = strlen(argv[n]);
 			if ( namelen > 4 && strcmp(".png", argv[n] + (namelen - 4)) == 0 )
 				decompress_png(fp, fout, &errors);
+			else if ( namelen > 5 && strcmp(".webp", argv[n] + (namelen - 5)) == 0 )
+				decompress_webp(fp, fout, &errors);
 			else
 				decompress_jpeg(fp, fout, &errors);
 			fclose(fp);

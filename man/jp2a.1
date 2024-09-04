@@ -1,6 +1,6 @@
-.TH jp2a 1  "January 7, 2024" "version 1.2.0" "USER COMMANDS"
+.TH jp2a 1  "September 4, 2024" "version 1.2.0" "USER COMMANDS"
 .SH NAME
-jp2a \- convert JPEG and PNG images to ASCII
+jp2a \- convert JPEG, PNG and WebP images to ASCII
 .SH SYNOPSIS
 .B jp2a
 [
@@ -11,11 +11,11 @@ jp2a \- convert JPEG and PNG images to ASCII
 .LP
 .SH DESCRIPTION
 .B jp2a
-will convert JPEG and PNG images to ASCII characters.  You can specify a mixture of files and URLs.
+will convert JPEG, PNG and WebP images to ASCII characters.  You can specify a mixture of files and URLs.
 .SH OPTIONS
 .TP
 .BI \-
-Read JPEG or PNG image from standard input
+Read JPEG, PNG and WebP image from standard input
 .TP
 .B \-\-background=light \-\-background=dark
 If you don't want to mess with \-\-invert all the time, just use these instead.
@@ -220,7 +220,7 @@ The latest version of jp2a and news is always available from https://github.com/
 .SH SEE ALSO
 cjpeg(1), djpeg(1), jpegtran(1), convert(1)
 .SH BUGS
-jp2a does not interpolate when resizing.  If you want better quality, try using convert(1)
+jp2a does not interpolate when resizing (except for WebP images).  If you want better quality, try using convert(1)
 and convert the source image to the exact output dimensions before using jp2a.
 .PP
 Another issue is that jp2a skips some X-pixels along each scanline.  This gives a less
@@ -232,5 +232,7 @@ jp2a uses jpeglib to read JPEG files.  jpeglib is made by The Independent JPEG G
 who have a page at http://www.ijg.org
 
 jp2a uses libpng to read PNG files.  libpng's homepage: http://libpng.org/pub/png/libpng.html
+
+jp2a uses libwebp to read WebP files.  libwebp's homepage: https://developers.google.com/speed/webp/
 .SH LICENSE
 jp2a is distributed under the GNU General Public License v2.

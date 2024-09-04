@@ -17,8 +17,11 @@
 #include <string.h>
 #endif
 
+#include <stdint.h>
+
 #include "jpeglib.h"
 #include "png.h"
+#include "webp/decode.h"
 #include <libexif/exif-data.h>
 #include <libexif/exif-loader.h>
 #include <setjmp.h>
@@ -541,6 +544,24 @@ void print_info_png(const png_structp png_ptr, const png_infop info_ptr) {
 	fprintf(stderr, "Output palette (%d chars): '%s'\n", ascii_palette_length, ascii_palette);
 }
 
+void print_info_webp(WebPDecoderConfig* config) {
+	fprintf(stderr, "Source width: %d\n", config->input.width);
+	fprintf(stderr, "Source height: %d\n", config->input.height);
+	if ( config->input.has_alpha ) {
+		fprintf(stderr, "Has alpha channel: Yes\n");
+	} else {
+		fprintf(stderr, "Has alpha channel: No\n");
+	}
+	if ( config->input.has_animation ) {
+		fprintf(stderr, "Has animation: Yes\n");
+	} else {
+		fprintf(stderr, "Has animation: No\n");
+	}
+	fprintf(stderr, "Output width: %d\n", width);
+	fprintf(stderr, "Output height: %d\n", height);
+	fprintf(stderr, "Output palette (%d chars): '%s'\n", ascii_palette_length, ascii_palette);
+}
+
 void process_scanline_jpeg(const struct jpeg_decompress_struct *jpg, const JSAMPLE* scanline, Image* i) {
 	static int lasty = 0;
 	const int y = ROUND( i->resize_y * (float) (jpg->output_scanline-1) );
@@ -838,7 +859,7 @@ void decompress_jpeg(FILE *fp, FILE *fout, error_collector *errors) {
 		errors->jpeg_status = 1;
 		jpeg_destroy_decompress(&jpg);
 		rewind(fp);
-		decompress_png(fp, fout, errors);
+		decompress_webp(fp, fout, errors);
 		return;
 	}
 	jpeg_create_decompress(&jpg);
@@ -919,7 +940,7 @@ void decompress_png(FILE *fp, FILE *fout, error_collector *errors) {
 		errors->png_status = 1;
 		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 		rewind(fp);
-		decompress_jpeg(fp, fout, errors);
+		decompress_webp(fp, fout, errors);
 		return;
 	}
 	png_init_io(png_ptr, fp);
@@ -999,6 +1020,130 @@ void decompress_png(FILE *fp, FILE *fout, error_collector *errors) {
 	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 }
 
+webp_data* get_webp_data(FILE *fp) {
+	webp_data* data_struct = malloc(sizeof(webp_data));
+	uint8_t buffer[1024];
+	size_t bytes_read;
+	size_t data_size = 0;
+	size_t data_allocated_size = 16384;
+	uint8_t* data = malloc(data_allocated_size);
+	
+	while ( 1 ) {
+		bytes_read = fread(buffer, 1, sizeof(buffer), fp);
+		if ( bytes_read <= 0 ) {
+			break;
+		}
+		size_t new_data_size = data_size + bytes_read;
+		if ( new_data_size < data_allocated_size ) {
+			data_allocated_size *= 2;
+			data = realloc(data, data_allocated_size);
+		}
+		uint8_t* dest = data + data_size;
+		memcpy(dest, buffer, bytes_read);
+		data_size = new_data_size;
+	}
+
+	data_struct->data = data;
+	data_struct->size = data_size;
+
+	return data_struct;
+}
+
+void free_webp_data(webp_data* data) {
+	free(data->data);
+	free(data);
+}
+
+void decompress_webp(FILE *fp, FILE *fout, error_collector *errors) {
+	if ( errors->webp_status ) {
+		print_errors(errors);
+		return;
+	}
+
+	Orientation orientation = get_orientation(fp);
+	int switch_x_y = 0;
+	if (
+			orientation == MIRROR_HORIZONTAL_ROTATE_90 ||
+			orientation == ROTATE_270 ||
+			orientation == MIRROR_HORIZONTAL_ROTATE_270 ||
+			orientation == ROTATE_90
+	) {
+		switch_x_y = 1;
+	}
+
+	Image image;
+
+	WebPDecoderConfig config;
+	WebPInitDecoderConfig(&config);
+
+	webp_data* img_data = get_webp_data(fp);
+
+	if ( WebPGetFeatures(img_data->data, img_data->size, &config.input) != VP8_STATUS_OK ) {
+		errors->webp_error_msg = "Unable to determine WebP features, possibly not a WebP";
+		errors->webp_status = 1;
+		free_webp_data(img_data);
+		rewind(fp);
+		decompress_png(fp, fout, errors);
+		return;
+	}
+
+	aspect_ratio(config.input.width, config.input.height, switch_x_y);
+	
+	if ( verbose ) print_info_webp(&config);
+
+	if ( height != 0 && width != 0 ) {
+		malloc_image(&image, switch_x_y);
+		clear(&image);
+
+		init_image(&image, image.src_width, image.src_height);
+		image.orientation = orientation;
+		if ( image.src_width != config.input.width || image.src_height != config.input.height ) {
+			// scale the image using the webp library instead of by jp2a
+			// this should provide smoother and faster scaling
+			config.options.use_scaling = 1;
+			config.options.scaled_width = image.src_width;
+			config.options.scaled_height = image.src_height;
+		}
+		config.output.colorspace = MODE_RGBA;
+		image.resize_x = 1.0f;
+		image.resize_y = 1.0f;
+
+		if ( WebPDecode(img_data->data, img_data->size, &config) != VP8_STATUS_OK) {
+
+			errors->webp_error_msg = "Error decoding WebP image";
+			errors->webp_status = 1;
+			free_image(&image);
+			free_webp_data(img_data);
+			rewind(fp);
+			decompress_png(fp, fout, errors);
+			return;
+		}
+
+		WebPRGBABuffer* u = (WebPRGBABuffer*) &config.output.u;
+		uint8_t* rgba = u->rgba;
+
+		for ( size_t i = 0; i < image.width * image.height; i++ ) {
+			if ( usecolors ) {
+				image.red[i] = rgba[i * 4] / 255.0f;
+				image.green[i] = rgba[i * 4 + 1] / 255.0f;
+				image.blue[i] = rgba[i * 4 + 2] / 255.0f;
+			}
+			image.pixel[i] = RED[rgba[i * 4]] + GREEN[rgba[i * 4 + 1]] + BLUE[rgba[i * 4 + 2]];
+			image.alpha[i] = rgba[i * 4 + 3] / 255.0f;
+		}
+		for ( size_t i = 0; i < image.src_height; i++ ) {
+			image.yadds[i] = 1;
+		}
+
+		print_image(&image, fout);
+
+		free_image(&image);
+		WebPFreeDecBuffer(&config.output);
+	}
+
+	free_webp_data(img_data);
+}
+
 void print_errors(error_collector *errors) {
 	if ( errors->jpeg_status ) {
 		my_jpeg_error_mgr *jerr = errors->jpeg_error;
@@ -1008,5 +1153,8 @@ void print_errors(error_collector *errors) {
 	}
 	if ( errors->png_status ) {
 		fprintf(stderr, "%s\n", errors->png_error_msg);
+	}
+	if ( errors->webp_status ) {
+		fprintf(stderr, "%s\n", errors->webp_error_msg);
 	}
 }

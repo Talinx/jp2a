@@ -10,12 +10,15 @@ jp2a has one method for every supported image type:
 
  - [decompress_jpeg](@ref decompress_jpeg)
  - [decompress_png](@ref decompress_png)
+ - [decompress_webp](@ref decompress_png)
 
 These methods read the image from a file stream and store their results in a [Image](@ref Image_) data structure.
 
 The original pixels of the image are not stored in this [Image](@ref Image_). Instead the pixels are generated while reading the image to account for adjusted display dimensions.
 
 The [Image](@ref Image_) saves the pixels in buffers that store the pixel line by line, i. e. the pixels of the first read line come first, followed by the pixels of the second line and so on.
+
+Should decoding fail in one of these methods, the next is called. This follows the order jpeg -> webp -> png -> jpeg and so on. When a method is called the second time, it prints errors and returns without calling the next. This way images can be printed even if the file extension is incorrect.
 
 ## Adjusting image dimensions
 
@@ -46,6 +49,8 @@ The inner loop is performed in one of these functions (depending on file type):
  - [process_scanline_jpeg](@ref process_scanline_jpeg)
  - [process_scanline_png](@ref process_scanline_png)
 
+There is no such method for WebP because the WebP library supports decoding a file in one go.
+
 This function needs a mapping from original image pixel coordinates to output pixel coordinates because generally the input and display dimensions differ. This is accomplished by the `resize_x`, `resize_y` and `lookup_resx` fields of the [Image](@ref Image_) struct.
 
 jp2a averages pixel along the input _y_ dimension while only considering one pixel along the _x_ dimension. Therefore `resize_y` rounds to the last scanline that should be taken into account for an output line while `lookup_resx` provides a direct mapping. These two fields are set beforehand in the [init_image](@ref init_image) function.
@@ -66,6 +71,8 @@ jp2a averages pixel along the input _y_ dimension while only considering one pix
 - `lookup_resx[i] = i * resize_x`
 
 Note that `lookup_resx` with the same formula. However with a different value for `resize_x` and a different array length. It is now as long as the displayed image high.
+
+WebP does not make use of `resize_x`, `resize_y` and `lookup_resx` and the averaging mechanism above is also not utilized because the libwebp library supports scaling which is used instead.
 
 ## Displaying images
 

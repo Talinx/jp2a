@@ -4,7 +4,7 @@ jp2a
 ![full-check](https://github.com/Talinx/jp2a/workflows/full-check/badge.svg?branch=master)
 
 
-jp2a is a simple JPEG/PNG to ASCII converter.
+jp2a is a simple JPEG/PNG/WebP to ASCII converter.
 
 The source is available at <https://github.com/Talinx/jp2a>. This project
 used to be hosted on SourceForge.
@@ -141,8 +141,10 @@ This will create HTML and LaTeX documentation in the doxygen-doc folder.
 ### Runtime dependencies
 - [jpeglib](https://www.ijg.org/) or [libjpeg-turbo](https://libjpeg-turbo.org/)
 - [libpng](http://libpng.org/pub/png/libpng.html)
+- [libwebp](https://developers.google.com/speed/webp/)
 - [curl](https://curl.haxx.se/) (optional)
 - [ncurses](https://invisible-island.net/ncurses/ncurses.html) (optional)
+- [libexif](https://libexif.github.io/)
 
 ### Build dependencies
 - make (e.g. [GNU Make](https://www.gnu.org/software/make/))

@@ -1,6 +1,6 @@
 /*
  * Copyright 2006-2016 Christian Stigen Larsen
- * Copyright 2020 Christoph Raitzig
+ * Copyright 2020-2024 Christoph Raitzig
  * Distributed under the GNU General Public License (GPL) v2.
  */
 
@@ -96,7 +96,7 @@ const char *fileout = "-";
 
 const char* version   = PACKAGE_STRING;
 const char* copyright = "Copyright 2006-2016 Christian Stigen Larsen\n"
-	"and 2020 Christoph Raitzig";
+	"and 2020-2024 Christoph Raitzig";
 const char* license   = "Distributed under the GNU General Public License (GPL) v2.";
 const char* url       = PACKAGE_URL;
 
@@ -112,11 +112,11 @@ void help() {
 #ifdef FEAT_CURL
 "Usage: jp2a [ options ] [ file(s) | URL(s) ]\n\n"
 
-"Convert files or URLs from JPEG/PNG format to ASCII.\n\n"
+"Convert files or URLs from JPEG/PNG/WebP format to ASCII.\n\n"
 #else
 "Usage: jp2a [ options ] [ file(s) ]\n\n"
 
-"Convert files in JPEG/PNG format to ASCII.\n\n"
+"Convert files in JPEG/PNG/WebP format to ASCII.\n\n"
 #endif
 "OPTIONS\n"
 "  -                 Read images from standard input.\n"
