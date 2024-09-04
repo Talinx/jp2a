@@ -127,6 +127,17 @@ from the net:
 This will look for `curl-config` in $PATH, but you can specify it directly with
 `--with-curl-config=PATH` if you need to.
 
+### Documentation
+
+jp2a is documented with [doxygen](https://www.doxygen.nl/). To build the documentation you need doxygen installed. It can then be built with:
+
+    autoreconf -vi
+    ./configure
+    make Doxyfile
+    doxygen
+
+This will create HTML and LaTeX documentation in the doxygen-doc folder.
+
 ### Runtime dependencies
 - [jpeglib](https://www.ijg.org/) or [libjpeg-turbo](https://libjpeg-turbo.org/)
 - [libpng](http://libpng.org/pub/png/libpng.html)

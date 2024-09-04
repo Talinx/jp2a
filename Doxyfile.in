@@ -4,5 +4,5 @@ PROJECT_BRIEF          = "Convert JPEG and PNG images to ASCII"
 OUTPUT_DIRECTORY       = doxygen-doc
 STRIP_FROM_PATH        = @top_srcdir@
 OPTIMIZE_OUTPUT_FOR_C  = YES
-INPUT                  = include
+INPUT                  = include,doc
 PREDEFINED             = FEAT_CURL
