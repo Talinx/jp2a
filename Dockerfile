@@ -2,7 +2,7 @@ FROM ubuntu as builder
 WORKDIR /app
 COPY . .
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y gcc make libjpeg-dev libpng-dev libwebp-dev libcurl4-gnutls-dev libncurses5-dev libexif-dev autoconf-archive pkg-config
+RUN apt-get update && apt-get install -y gcc make libjpeg-dev libpng-dev libwebp-dev libcurl4-gnutls-dev libncurses5-dev libexif-dev pkg-config
 RUN ./autogen.sh && ./configure && make
 
 FROM ubuntu
