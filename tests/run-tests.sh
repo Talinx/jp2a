@@ -83,6 +83,8 @@ echo " completely broken."
 echo "-------------------------------------------------------------"
 echo ""
 
+export COLORTERM=truecolor
+
 test_jp2a "width" "--width=78 jp2a.jpg" normal.txt
 test_jp2a "border, width" "-b --width=78 jp2a.jpg" normal-b.txt
 test_jp2a "size" "--size=160x49 jp2a.jpg" 160x49.txt
