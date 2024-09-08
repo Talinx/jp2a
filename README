@@ -92,7 +92,7 @@ Building
 
 `jp2a` can be compiled as usual: `./configure && make && make install`
 
-If you want to compile after cloning the git repo (i.e. generate the `configure` script yourself), you need autotools, automake and autoconf-archive. You may need to specify the path to jpeglib. I usually just do
+If you want to compile after cloning the git repo (i.e. generate the `configure` script yourself), you need autotools, automake and optionally autoconf-archive. You may need to specify the path to jpeglib. I usually just do
 
     autoreconf -vi
     ./configure --with-jpeg-prefix=/usr/local \
@@ -133,8 +133,7 @@ jp2a is documented with [doxygen](https://www.doxygen.nl/). To build the documen
 
     autoreconf -vi
     ./configure
-    make Doxyfile
-    doxygen
+    make doc
 
 This will create HTML and LaTeX documentation in the doxygen-doc folder.
 
@@ -155,7 +154,7 @@ If you generate the `configure` script yourself (i.e. run `autoreconf`) you also
 - autotools
 - [automake](https://www.gnu.org/software/automake/)
 - [autoconf](https://www.gnu.org/software/autoconf/autoconf.html)
-- [autoconf-archive](https://www.gnu.org/software/autoconf-archive/)
+- (optional, only required for building documentation) [autoconf-archive](https://www.gnu.org/software/autoconf-archive/)
 
 Windows
 -------

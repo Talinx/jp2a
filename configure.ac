@@ -3,8 +3,11 @@
 
 AC_PREREQ([2.69])
 AC_INIT([jp2a],[1.2.0],[chris-r@posteo.net], [jp2a], [https://github.com/Talinx/jp2a])
-DX_INIT_DOXYGEN([jp2a])
+m4_ifdef([DX_INIT_DOXYGEN],
+	 [doc=true
+	  DX_INIT_DOXYGEN([jp2a])],[doc=false])
 AM_INIT_AUTOMAKE(dist-bzip2 dist-zip)
+AM_CONDITIONAL([DOC], [test x$doc = xtrue])
 AC_CONFIG_SRCDIR(src/jp2a.c)
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile])
