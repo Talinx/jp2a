@@ -91,9 +91,6 @@ if test "x$pure_ascii" = "xyes" ; then
 	AC_DEFINE([ASCII], [1], [only support ASCII, not UTF-8 or other encodings])
 fi
 
-# Checks for header files.
-AC_HEADER_STDC
-
 AC_CHECK_HEADER([jpeglib.h],
 	[ AC_DEFINE([HAVE_JPEGLIB_H], [1], [Define to 1 if you have <jpeglib.h> header file.]) ],
 	[ AC_MSG_ERROR([required header file jpeglib.h not found, use --with-jpeg-include=PATH or see --help]) ])
