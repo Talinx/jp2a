@@ -1,4 +1,4 @@
-.TH jp2a 1  "September 4, 2024" "version 1.2.0" "USER COMMANDS"
+.TH jp2a 1  "September 8, 2024" "version 1.2.0" "USER COMMANDS"
 .SH NAME
 jp2a \- convert JPEG, PNG and WebP images to ASCII
 .SH SYNOPSIS
@@ -178,6 +178,16 @@ somefile.gif jpg:\- |
 Check out convert(1) options to see what you can do.  Convert can handle almost any image format,
 so with this combination you can convert images in e.g. PDF or AVI files to ASCII.
 .PP
+jp2a uses a very basic scaling algorithm for every image format except WebP. To get better quality, convert an image to WebP to make use of the scaling built into the libwebp library:
+.PP
+.B cwebp
+\-quiet
+image.jpg
+\-o
+\- |
+.B jp2a
+\-
+.PP
 Although the default build of jp2a includes automatic downloading of files specified by URLs,
 you can explicitly download them by using curl(1) or wget(1), for example:
 .PP
@@ -218,10 +228,10 @@ values is to use Y = R*0.2989 + G*0.5866 + B*0.1145.
 .SH PROJECT HOMEPAGE
 The latest version of jp2a and news is always available from https://github.com/Talinx/jp2a.
 .SH SEE ALSO
-cjpeg(1), djpeg(1), jpegtran(1), convert(1)
+cjpeg(1), djpeg(1), jpegtran(1), convert(1), cwebp(1)
 .SH BUGS
-jp2a does not interpolate when resizing (except for WebP images).  If you want better quality, try using convert(1)
-and convert the source image to the exact output dimensions before using jp2a.
+jp2a does not interpolate when resizing (except for WebP images).  If you want better quality, try using cwebp(1)
+to convert the image to WebP before using jp2a to get correct scaling.
 .PP
 Another issue is that jp2a skips some X-pixels along each scanline.  This gives a less
 precise output image, and will probably be corrected in future versions.
