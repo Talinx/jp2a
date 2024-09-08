@@ -83,6 +83,7 @@ int main(int argc, char** argv) {
 
 		errors.jpeg_status = 0;
 		errors.png_status = 0;
+		errors.webp_status = 0;
 
 		// read from stdin
 		if ( argv[n][0]=='-' && !argv[n][1] ) {
@@ -110,7 +111,7 @@ int main(int argc, char** argv) {
 #endif
 			}
 
-			if ( errors.jpeg_status && errors.png_status )
+			if ( errors.jpeg_status && errors.png_status && errors.webp_status )
 				retval = 1;
 			continue;
 		}
@@ -155,7 +156,7 @@ int main(int argc, char** argv) {
 			fclose(fr);
 			close(fd);
 			
-			if ( errors.jpeg_status && errors.png_status )
+			if ( errors.jpeg_status && errors.png_status && errors.webp_status )
 				retval = 1;
 			continue;
 		}
@@ -175,7 +176,7 @@ int main(int argc, char** argv) {
 				decompress_jpeg(fp, fout, &errors);
 			fclose(fp);
 
-			if ( errors.jpeg_status && errors.png_status )
+			if ( errors.jpeg_status && errors.png_status && errors.webp_status )
 				retval = 1;
 			continue;
 
