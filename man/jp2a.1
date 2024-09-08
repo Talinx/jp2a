@@ -170,7 +170,7 @@ cat image.jpg |
 If you use jp2a together with ImageMagick's convert(1) then you can make good use of pipes,
 and have ImageMagick do all sorts of image conversions and effects on the source image.  For example:
 .PP
-.B convert
+.B magick
 somefile.gif jpg:\- |
 .B jp2a
 \- \-\-width=80
@@ -184,7 +184,7 @@ you can explicitly download them by using curl(1) or wget(1), for example:
 .B curl
 \-s
 http://foo.bar/image.jpg |
-.B convert
+.B magick
 \- jpg:- |
 .B jp2a
 \-
