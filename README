@@ -78,6 +78,13 @@ Installation
 Look in your system's package manager. I don't maintain Windows binaries
 anymore.
 
+Graphical UI
+------------
+
+[Letterpress](https://apps.gnome.org/Letterpress/) is a graphical user interface
+for jp2a. Letterpress can be installed from
+[Flathub](https://flathub.org/apps/io.gitlab.gregorni.Letterpress).
+
 Docker
 ------
 
