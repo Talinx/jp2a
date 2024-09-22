@@ -37,6 +37,51 @@
 
 static char DIRECTIONAL_CHARS[4] = "=/|\\";
 
+void print_margin_top(const Image *image, FILE *f) {
+	if ( centery && !( html || xhtml ) ) {
+		int total_margin = term_height - image->height;
+		if ( use_border ) {
+			total_margin -= 2;
+		}
+		if ( total_margin <= 0 )
+			return;
+		int margin_top = (int) floor(total_margin / 2);
+		for ( size_t i = 0; i < margin_top; i++ ) {
+			fprintf(f, "\n");
+		}
+	}
+}
+
+void print_margin_bottom(const Image *image, FILE *f) {
+	if ( centery && !( html || xhtml ) ) {
+		int total_margin = term_height - image->height;
+		if ( use_border ) {
+			total_margin -= 2;
+		}
+		if ( total_margin <= 0 )
+			return;
+		int margin_bottom = (int) ceil(total_margin / 2);
+		for ( size_t i = 0; i < margin_bottom; i++ ) {
+			fprintf(f, "\n");
+		}
+	}
+}
+
+void print_margin_start(const Image *image, FILE *f) {
+	if ( centerx && !( html || xhtml ) ) {
+		int total_margin = term_width - image->width;
+		if ( use_border ) {
+			total_margin -= 2;
+		}
+		if ( total_margin <= 0 )
+			return;
+		int margin_start = (int) floor(total_margin / 2);
+		for ( size_t i = 0; i < margin_start; i++ ) {
+			fprintf(f, " ");
+		}
+	}
+}
+
 void print_border(const int width) {
 	#ifndef HAVE_MEMSET
 	int n;
@@ -78,11 +123,19 @@ void print_image(Image *image, FILE *f) {
 
 	if ( html && !html_rawoutput ) print_html_image_start(f);
 	else if ( xhtml && !html_rawoutput ) print_xhtml_image_start(f);
-	if ( use_border ) print_border(image->width);
+	print_margin_top(image, f);
+	if ( use_border ) {
+		print_margin_start(image, f);
+		print_border(image->width);
+	}
 
 	(!usecolors? print_image_no_colors : print_image_colors) (image, ascii_palette_length - 1, f);
 
-	if ( use_border ) print_border(image->width);
+	if ( use_border ) {
+		print_margin_start(image, f);
+		print_border(image->width);
+	}
+	print_margin_bottom(image, f);
 	if ( html && !html_rawoutput ) print_html_image_end(f);
 	else if ( xhtml && !html_rawoutput ) print_xhtml_image_end(f);
 }
@@ -160,6 +213,8 @@ float direction( const vec2 v ) {
 void print_image_colors(const Image* const image, const int chars, FILE* f) {
 
 	for ( int y=0;  y < image->height; ++y ) {
+
+		print_margin_start(image, f);
 
 		if ( use_border ) fprintf(f, "|");
 
@@ -365,6 +420,7 @@ void print_image_no_colors(const Image* const image, const int chars, FILE *f) {
 #endif
 
 	for ( int y=0; y < image->height; ++y ) {
+		print_margin_start(image, f);
 
 		int curLinePos = 0;
 		for ( int x=0; x < image->width; ++x ) {

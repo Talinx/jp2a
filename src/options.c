@@ -50,6 +50,8 @@ int use_border = 0;
 int invert = 1;
 int flipx = 0;
 int flipy = 0;
+int centerx = 0;
+int centery = 0;
 int html = 0;
 int xhtml = 0;
 int colorfill = 0;
@@ -144,6 +146,7 @@ void help() {
 "      --term-height Use terminal display height.\n"
 "      --term-width  Use terminal display width.\n"
 "  -z, --term-zoom   Use terminal display dimension for output.\n"
+"  -c, --term-center Center image in terminal.\n"
 #endif
 "      --grayscale   Convert image to grayscale when using --htmlls or --xhtml\n"
 "                    or --colors\n"
@@ -273,6 +276,7 @@ void parse_options(int argc, char** argv) {
 		}
 
 #ifdef FEAT_TERMLIB
+		IF_OPTS("-c", "--term-center")      { centerx = 1; centery = 1; continue; }
 		IF_OPTS("-z", "--term-zoom")        { termfit = TERM_FIT_ZOOM; continue; }
 		IF_OPT ("--term-height")            { termfit = TERM_FIT_HEIGHT; continue; }
 		IF_OPT ("--term-width")             { termfit = TERM_FIT_WIDTH; continue; }
@@ -360,7 +364,7 @@ void parse_options(int argc, char** argv) {
 	}
 #endif
 
-	if ( termfit ) {
+	if ( termfit || centerx || centery ) {
 		char* err = "";
 
 		if ( get_termsize(&term_width, &term_height, &err) <= 0 ) {

@@ -120,6 +120,30 @@ typedef struct error_collector {
  */
 
 /*!
+ * \brief Prints the top margin of an image
+ *
+ * \param image Image
+ * \param f output stream
+ */
+void print_margin_top(const Image *image, FILE *f);
+
+/*!
+ * \brief Prints the bottom margin of an image
+ *
+ * \param image Image
+ * \param f output stream
+ */
+void print_margin_bottom(const Image *image, FILE *f);
+
+/*!
+ * \brief Prints the start margin of an image
+ *
+ * \param image Image
+ * \param f output stream
+ */
+void print_margin_start(const Image *image, FILE *f);
+
+/*!
  * \brief Prints the top or bottom of a border around an image.
  *
  * \param width width of the output image

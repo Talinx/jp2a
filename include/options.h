@@ -30,6 +30,8 @@ extern int use_border; //!< print a border around images
 extern int invert; //!< invert output (color/gray channels, not alpha)
 extern int flipx; //!< flip output along x axis
 extern int flipy; //!< flip output along y axis
+extern int centerx; //!< center output along the x axis
+extern int centery; //!< center output along the y axis
 extern int html; //!< produce HTML output
 extern int xhtml; //!< produce XHTML output
 extern int html_fontsize; //!< font size for HTML/XHTML output

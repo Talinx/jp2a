@@ -123,6 +123,8 @@ void print_css(const int fontsize, FILE *f) {
 	fputs("body {\n", f);
 	fputs(!invert?
 		"   background-color: white;\n" : "background-color: black;\n", f);
+	if ( centerx || centery )
+	fputs(  "   margin: 0;\n   padding: 0;\n", f); // only perform CSS reset in these conditions for backward compatibility
 	fputs(  "}\n"
 		".ascii {\n"
 		"   font-family: Courier;\n", f); // should be a monospaced font
@@ -131,6 +133,15 @@ void print_css(const int fontsize, FILE *f) {
 		"   color: black;\n" : "   color: white;\n", f);
 	fprintf(f,
 		"   font-size:%dpt;\n", fontsize);
+	if ( centerx && centery )
+	fprintf(f,
+		"   display: flex;\n   min-height: 100vh;\n   align-items: center;\n   justify-content: center;\n");
+	else if ( centerx )
+	fprintf(f,
+		"   display: flex;\n   justify-content: center;\n");
+	else if ( centery )
+	fprintf(f,
+		"   display: flex;\n   min-height: 100vh;\n   align-items: center;\n");
 	if ( html_bold )
 	fputs( 	"   font-weight: bold;\n", f);
 	else
