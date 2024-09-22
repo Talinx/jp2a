@@ -10,8 +10,8 @@ _jp2a()
         --grayscale --html --htmlls --xhtml --html-fill --html-no-bold --html-raw --border
         --invert --background= --flipx --flipy --version --width= --height=
         --red= --green= --blue= --html-fontsize= --size= --term-zoom
-        --term-height --term-width --term-fit --output= --html-title= --chars=
-        --edge-threshold= --edges-only"
+        --term-center --term-height --term-width --term-fit --output= --html-title=
+	--chars= --edge-threshold= --edges-only"
         case $cur in
                 --*)
 						COMPREPLY=( $(compgen -W "${OPTS}" -- $cur) )
