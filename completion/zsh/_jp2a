@@ -1,0 +1,50 @@
+#compdef jp2a
+
+_arguments -C \
+  '--red=[Set RGB to grayscale conversion weight, default is 0.2989]::' \
+  '--green=[Set RGB to grayscale conversion weight, default is 0.5866]::' \
+  '--blue=[Set RGB to grayscale conversion weight, default is 0.1145]::' \
+  '-[Read images from standard input.]' \
+  '(-b --border)'{-b,--border}'[Print a border around the output image.]' \
+  '--chars=[Select character palette used to paint the image. Leftmost character corresponds to black pixel, right-most to white.  Minimum two characters must be specified.]':: \
+  '--clear[Clears screen before drawing each output image.]' \
+  '--colors[Use true colors or, if true color is not supported, ANSI in output.]' \
+  '--color-depth=[Use a specific color-depth for terminal output. Valid values are: 4 (for ANSI), 8 (for 256 color palette) and 24 (for truecolor or 24-bit color).]:colordepth:(4 8 24)' \
+  '(-d --debug)'{-d,--debug}'[Print additional debug information.]' \
+  '--edge-threshold=[Image gradient above which to shade lines and edges with directional glyphs (such as -/|\).]' \
+  '--edges-only[Only draw edges - make sure you use it with the edge-threshold option so edges are drawn.]' \
+  "(--fill --html-fill)--fill[When used with --color and/or --htmlls or --xhtml, color each character's background.]" \
+  '(-x --flipx)'{-x,--flipx}'[Flip image in X direction.]' \
+  '(-y --flipy)'{-y,--flipy}'[Flip image in Y direction.]' \
+  '(-f --term-fit)'{-f,--term-fit}'[Use the largest image dimension that fits in your terminal display with correct aspect ratio.]' \
+  '--term-height[Use terminal display height.]' \
+  '--term-width[Use terminal display width.]' \
+  '(-z --term-zoom)'{-z,--term-zoom}'[Use terminal display dimension for output.]' \
+  '(-c --term-center)'{-c,--term-center}'[Center image in terminal.]' \
+  '--grayscale[Convert image to grayscale when using --htmlls or --xhtml or --colors.]' \
+  '--height=[Set output height, calculate width from aspect ratio.]':: \
+  '(- *)'{-h,--help}'[Print program help.]' \
+  '--htmlls[Produce HTML (Living Standard) output.]' \
+  '--html[Produce strict XHTML 1.0 output (will produce HTML output from version 2.0.0 onward).]' \
+  '--xhtml[Produce strict XHTML 1.0 output.]' \
+  '(--fill --html-fill)--html-fill[Same as --fill (will be phased out).]' \
+  '--html-fontsize=[Set fontsize to N pt, default is 4.]' \
+  '--html-no-bold[Do not use bold characters with HTML output.]' \
+  '--html-raw[Output raw HTML codes, i.e. without the <head> section etc. (Will use <br> for version 2.0.0 and above.)]' \
+  '--html-title=[Set HTML output title]' \
+  '(-i --invert --background)'{-i,--invert}'[Invert output image.  Use if your display has a dark background.]' \
+  '(-i --invert --background)--background=[dark or light. These are just mnemonics whether to use --invert or not. If your console has light characters on a dark background, use --background=dark.]:background:(dark light)' \
+  '--output=[Write output to file.]::' \
+  '--size=[Set output width and height.]::' \
+  '(-v --verbose)'{-v,--verbose}'[Verbose output.]' \
+  '(- *)'{-v,--version}'[Print program version.]' \
+  '--width=[Set output width, calculate height from ratio.]::' \
+  '*:images:->images'
+
+case "$state" in
+    images)
+        local -a image_files
+        image_files=( *.{jpg,jpeg,png,webp} "http://" "https://" "file://" )
+	_multi_parts / image_files
+        ;;
+esac

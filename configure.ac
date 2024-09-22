@@ -132,6 +132,9 @@ fi
 PKG_CHECK_VAR(bashcompdir, [bash-completion], [completionsdir], ,
   bashcompdir="${sysconfdir}/bash_completion.d")
 AC_SUBST(bashcompdir)
+PKG_CHECK_VAR(zshcompdir, [zsh-completion], [zshcompletionsdir], ,
+  zshcompdir="${datarootdir}/zsh/site-functions")
+AC_SUBST(zshcompdir)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
