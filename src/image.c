@@ -1090,7 +1090,7 @@ webp_data* get_webp_data(FILE *fp) {
 			break;
 		}
 		size_t new_data_size = data_size + bytes_read;
-		if ( new_data_size < data_allocated_size ) {
+		if ( new_data_size > data_allocated_size ) {
 			data_allocated_size *= 2;
 			data = realloc(data, data_allocated_size);
 		}
