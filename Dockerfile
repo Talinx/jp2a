@@ -7,6 +7,6 @@ RUN ./autogen.sh && ./configure && make
 
 FROM ubuntu
 WORKDIR /app
-RUN apt-get update && apt-get install -y libc6 libjpeg8 libpng16-16t64 libwebp7 libcurl3t64-gnutls libtinfo6
+RUN apt-get update && apt-get install -y libc6 libjpeg8 libpng16-16t64 libwebp7 libcurl3t64-gnutls libtinfo6 libexif12
 COPY --from=builder /app/src/jp2a /usr/bin/jp2a
 ENTRYPOINT ["jp2a"]
