@@ -946,7 +946,7 @@ void decompress_jpeg(FILE *fp, FILE *fout, error_collector *errors) {
 		image.orientation = orientation;
 
 		while ( jpg.output_scanline < jpg.output_height ) {
-			jpeg_read_scanlines(&jpg, buffer, 1);
+			if (jpeg_read_scanlines(&jpg, buffer, 1) == 0) continue;
 			process_scanline_jpeg(&jpg, buffer[0], &image);
 			if ( verbose ) print_progress((float) (jpg.output_scanline + 1.0f) / (float) jpg.output_height);
 		}
