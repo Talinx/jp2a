@@ -213,6 +213,14 @@ float direction( const vec2 v ) {
 void print_image_colors(const Image* const image, const int chars, FILE* f) {
 
 	for ( int y=0;  y < image->height; ++y ) {
+		float prev_Y = -1.0;
+		float prev_R = -1.0;
+		float prev_G = -1.0;
+		float prev_B = -1.0;
+		float prev_A = -1.0;
+
+		if ( !html && !xhtml && usecolors )
+			fprintf(f, "\e[0m"); // reset colors
 
 		print_margin_start(image, f);
 
@@ -260,11 +268,19 @@ void print_image_colors(const Image* const image, const int chars, FILE* f) {
 			memcpy(ch, char_start, char_len);
 			ch[char_len] = '\0';
 
+			if ( !html && !xhtml && Y == prev_Y && R == prev_R && G == prev_G && B == prev_B && A == prev_A) {
+				fprintf(f, PRINTF_FORMAT_TYPE, ch);
+				continue;
+			}
+			prev_Y = Y;
+			prev_R = R;
+			prev_G = G;
+			prev_B = B;
+			prev_A = A;
+
 			const float min = 1.0f / 255.0f;
 
 			if ( !html && !xhtml ) {
-				if ( usecolors ) // reset colors, the terminal could be colored by default
-					fprintf(f, "\e[0m"); // reset colors
 				if ( colorDepth==4 ) {
 					const float t = 0.1f; // threshold
 					const float i = 1.0f - t;
