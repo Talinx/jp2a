@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: install_dependencies
       run: sudo apt update && sudo apt install libjpeg-dev libpng-dev libwebp-dev libcurl4-gnutls-dev libncurses5-dev libexif-dev pkg-config
     - name: first_build
@@ -38,10 +38,10 @@ jobs:
   zig-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: install_dependencies
       run: sudo apt update && sudo apt install libjpeg-dev libpng-dev libwebp-dev libcurl4-gnutls-dev libncurses5-dev libexif-dev pkg-config
-    - uses: goto-bus-stop/setup-zig@v2
+    - uses: mlugg/setup-zig@v2
     - name: build with zig
       run: |
           ./autogen.sh
