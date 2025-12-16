@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([jp2a],[1.3.2],[chris-r@posteo.net], [jp2a], [https://github.com/Talinx/jp2a])
+AC_INIT([jp2a],[1.3.3],[chris-r@posteo.net], [jp2a], [https://github.com/Talinx/jp2a])
 m4_ifdef([DX_INIT_DOXYGEN],
 	 [doc=true
 	  DX_INIT_DOXYGEN([jp2a])],[doc=false])

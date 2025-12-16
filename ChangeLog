@@ -1,3 +1,7 @@
+CHANGES SINCE 1.3.3
+- Don't repeat escape sequences when color hasn't changed. Thanks to clubby789
+(https://github.com/clubby789)
+
 CHANGES SINCE 1.3.2
 - Fix Docker image missing libexif library. Thanks to PowerMeep
 (https://github.com/PowerMeep)
